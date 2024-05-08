@@ -1,5 +1,6 @@
 import { SortDirectionEnum } from '@src/types/common.types';
 import { GetAllRequestQuery } from '@src/types/sales.types';
+import { UserRolesEnum } from '@src/types/user.types';
 import { Request } from 'express';
 
 // Throws an error if the sort query is invalid
@@ -17,6 +18,20 @@ export const formatSortQuery = (data: string): GetAllRequestQuery['sort'] => {
   }
 
   return sortQuery;
+};
+// Throws an error if the role query is invalid
+export const formatRoleQuery = (data: string): GetAllRequestQuery['role'] => {
+  const roles = data.split(',').map((role) => role.trim().toLowerCase());
+
+  const userRoles = Object.values(UserRolesEnum);
+
+  for (const role of roles) {
+    if (!userRoles.includes(role as UserRolesEnum)) {
+      throw new Error(`Invalid role query, one of the supplied roles is not valid: [${roles}]`);
+    }
+  }
+
+  return roles as [UserRolesEnum];
 };
 
 export const getBackendUrl = (req: Request) => {

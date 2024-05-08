@@ -61,7 +61,7 @@ class StoresController extends BaseController {
     const include: any = [];
 
     if (['keeper', 'user'].includes(user.role)) {
-      include.push({ association: 'users', where: { id: user.id } });
+      where.id = user.storeId;
     }
 
     const { stores, total } = await StoreServices.getAllStores({ search, limit, skip, sort }, where, include);
@@ -74,23 +74,15 @@ class StoresController extends BaseController {
 
   // get a single store
   async singleStore(req: ExtendedRequest, res: Response): Promise<Response> {
-    const { role, id: userId } = req.user!;
+    const { role, storeId } = req.user!;
     const { id } = req.params;
 
-    const include: IncludeOptions[] = [
-      {
-        association: 'users',
-        required: false,
-        where: { id: userId },
-        attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'deletedAt', 'storeId'] },
-      },
-    ];
-    const store = await StoreServices.getOneStore({ id }, include);
+    const store = await StoreServices.getOneStore({ id });
 
-    if (['keeper', 'user'].includes(role) && !store?.users?.find((user) => user.id === userId)) {
+    if (['keeper', 'user'].includes(role) && storeId !== id) {
       return res.status(403).json({
         status: 'fail',
-        message: 'You are not allowed to view this store info or the store does not exist',
+        message: 'You are not allowed to view this store info',
       });
     }
 
@@ -234,7 +226,6 @@ class StoresController extends BaseController {
   async getStoreProducts(req: ExtendedRequest, res: Response): Promise<Response> {
     const user = req.user!;
     const { storeId } = req.params;
-    const { search, limit, skip, sort } = req.query;
 
     if (user.role !== 'admin' && user.storeId !== storeId) {
       return res.status(403).json({
@@ -251,7 +242,15 @@ class StoresController extends BaseController {
       });
     }
 
-    const { products, total } = await ProductServices.getAllProducts({ search, limit, skip, sort }, { storeId });
+    const includes: [IncludeOptions] = [
+      {
+        association: 'stores',
+        where: { storeId },
+        required: true,
+        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+      },
+    ];
+    const { products, total } = await ProductServices.getAllProducts(req.query, {}, includes);
 
     return res.status(200).json({
       status: 'success',
@@ -262,7 +261,6 @@ class StoresController extends BaseController {
   async getStoreUsers(req: ExtendedRequest, res: Response): Promise<Response> {
     const user = req.user!;
     const { storeId } = req.params;
-    const { search, limit, skip, sort } = req.query;
 
     if (user.role === 'keeper' && user.storeId !== storeId) {
       return res.status(403).json({
@@ -279,7 +277,7 @@ class StoresController extends BaseController {
       });
     }
 
-    const { users, total } = await UserService.getAllUsers({ search, limit, skip, sort }, { storeId });
+    const { users, total } = await UserService.getAllUsers(req.query, { storeId });
 
     return res.status(200).json({
       status: 'success',

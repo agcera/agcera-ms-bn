@@ -1,6 +1,6 @@
 import { PaymentMethodsEnum } from '@database/models/sale';
 import { SortDirectionEnum } from './common.types';
-import { ClientTypesEnum } from './user.types';
+import { ClientTypesEnum, UserRolesEnum } from './user.types';
 
 export interface CreateSaleRequestProducts {
   [key: string]: number;
@@ -21,4 +21,5 @@ export interface GetAllRequestQuery<
   skip?: number;
   limit?: number;
   sort?: Sort;
+  role?: [UserRolesEnum];
 }

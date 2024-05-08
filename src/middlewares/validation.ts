@@ -1,6 +1,6 @@
 import ProductServices from '@src/services/product.services';
 import { ExtendedRequest } from '@src/types/common.types';
-import { formatSortQuery } from '@src/utils/formatters';
+import { formatRoleQuery, formatSortQuery } from '@src/utils/formatters';
 import { getAllRequestQuerySchema, uuidSchema } from '@src/validation/common.validation';
 import { Request, Response, NextFunction } from 'express';
 import Joi from 'joi';
@@ -47,11 +47,19 @@ export class ValidationMiddleware extends BaseMiddleware {
   };
 
   validateQueries = (req: Request, res: Response, next: NextFunction) => {
-    const { search, limit, skip, sort } = req.query;
+    const { sort, role } = req.query;
 
     // Run below code if atleast one of the query parameters is present
-    if (search || limit || skip || sort) {
-      if (sort && typeof sort === 'string') req.query.sort = formatSortQuery(sort);
+    if (Object.keys(req.query).length > 0) {
+      try {
+        if (sort && typeof sort === 'string') req.query.sort = formatSortQuery(sort);
+        if (role && typeof role === 'string') req.query.role = formatRoleQuery(role);
+      } catch (error: any) {
+        return res.status(400).json({
+          status: 'fail',
+          message: error.message,
+        });
+      }
 
       const { error, value } = getAllRequestQuerySchema.validate(req.query);
       if (error) {

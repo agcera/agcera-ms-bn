@@ -6,7 +6,7 @@ export const findQueryGenerators = (
   queryData?: GetAllRequestQuery,
   additionalData?: any
 ) => {
-  const { skip, limit, sort, search } = queryData ?? {};
+  const { skip, limit, sort, search, role } = queryData ?? {};
 
   const findQuery: any = { distinct: true };
 
@@ -16,6 +16,15 @@ export const findQueryGenerators = (
 
   if (additionalData) {
     Object.assign(findQuery, additionalData);
+  }
+
+  if (role) {
+    findQuery.where = {
+      ...findQuery['where'],
+      role: {
+        [Op.in]: [...role, findQuery['where']?.role],
+      },
+    };
   }
 
   if (search) {
