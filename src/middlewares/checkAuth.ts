@@ -1,10 +1,19 @@
-import { Request, type NextFunction, type Response } from 'express';
-import { verifyToken } from '../utils/jwtFunctions';
-import { ExtendedRequest } from '@src/types/common.types';
 import UserService from '@src/services/user.services';
+import { ExtendedRequest } from '@src/types/common.types';
+import { Request, type NextFunction, type Response } from 'express';
+import { BaseMiddleware } from '.';
+import { verifyToken } from '../utils/jwtFunctions';
 
-const checkRoleMiddleware =
-  (requiredRole: string | Array<string>) => async (req: Request, res: Response, next: NextFunction) => {
+export class AuthMiddleware extends BaseMiddleware {
+  requiredRole: string | Array<string>;
+
+  constructor(requiredRole: string | Array<string>) {
+    super();
+    this.requiredRole = requiredRole;
+  }
+
+  checkAuth = async (req: Request, res: Response, next: NextFunction) => {
+    // throw new Error('Method not implemented.');
     // Extract the token from cookies
     const token = req.cookies.AuthToken;
 
@@ -48,13 +57,13 @@ const checkRoleMiddleware =
     }
 
     // If only checking if the user is logged in
-    if (requiredRole === '*') {
+    if (this.requiredRole === '*') {
       (req as ExtendedRequest).user = user;
       return next();
     }
 
     // Check if the user has the required role
-    if (Array.isArray(requiredRole) ? requiredRole.includes(user.role) : user.role === requiredRole) {
+    if (Array.isArray(this.requiredRole) ? this.requiredRole.includes(user.role) : user.role === this.requiredRole) {
       (req as ExtendedRequest).user = user;
       return next();
     }
@@ -64,15 +73,16 @@ const checkRoleMiddleware =
       message: 'You are not authorized to perform this action',
     });
   };
+}
 
-export const isAdmin = checkRoleMiddleware('admin');
-export const isStoreKeeper = checkRoleMiddleware('keeper');
-export const isUser = checkRoleMiddleware('user');
+export const isAdmin = new AuthMiddleware('admin').checkAuth;
+export const isStoreKeeper = new AuthMiddleware('keeper').checkAuth;
+export const isUser = new AuthMiddleware('user').checkAuth;
 
 // You can also check for any role you wish
 
 // use the same check role to simply check if the user is logged in
-export const isLoggedIn = checkRoleMiddleware('*');
+export const isLoggedIn = new AuthMiddleware('*').checkAuth;
 
 // In addition you can check for multiple roles
-export const isStoreKeeperUp = checkRoleMiddleware(['keeper', 'admin']);
+export const isStoreKeeperUp = new AuthMiddleware(['keeper', 'admin']).checkAuth;
