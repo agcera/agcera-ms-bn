@@ -201,14 +201,13 @@ class UsersController extends BaseController {
   // get all users
   async getAllUsers(req: ExtendedRequest, res: Response): Promise<Response> {
     const user = req.user!;
-    const { search, limit, skip, sort } = req.query;
 
     const where: WhereOptions = {};
     if (user.role === 'keeper') {
       where['storeId'] = user.storeId;
     }
 
-    const { users, total } = await userService.getAllUsers({ search, limit, skip, sort }, where);
+    const { users, total } = await userService.getAllUsers(req.query, where);
 
     return res.status(200).json({
       status: 'success',
