@@ -87,7 +87,7 @@ class UsersController extends BaseController {
 
     // generate the toke for the user
     const tokenDuration = 7 * 24 * 60 * 60;
-    const token = generateToken({ id: user.id, role: user.role, expiresIn: tokenDuration });
+    const token = generateToken({ id: user.id, role: user.role }, tokenDuration);
     // store the token in the cookies
     // multiply by 1000 to convert to milliseconds as the expiresIn is in seconds
     res.cookie('AuthToken', token, { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenDuration * 1000 });
