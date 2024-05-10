@@ -1,13 +1,13 @@
 import { Model, DataTypes, InferAttributes, InferCreationAttributes, ForeignKey, CreationOptional } from 'sequelize';
 import Sale from './sale';
 import sequelize from '@database/connection';
-import Product from './product';
+import Variation from '@database/models/variation';
 
 class SaleProduct extends Model<InferAttributes<SaleProduct>, InferCreationAttributes<SaleProduct>> {
   declare readonly id: string | undefined;
 
   declare saleId: ForeignKey<Sale['id']>;
-  declare productId: ForeignKey<Product['id']>;
+  declare variationId: ForeignKey<Variation['id']>;
 
   declare quantity: number | undefined;
 
@@ -36,7 +36,7 @@ SaleProduct.init(
         key: 'id',
       },
     },
-    productId: {
+    variationId: {
       allowNull: false,
       type: DataTypes.UUID,
       references: {
@@ -59,12 +59,12 @@ SaleProduct.init(
   }
 );
 
-SaleProduct.belongsTo(Product, {
-  foreignKey: 'productId',
+SaleProduct.belongsTo(Variation, {
+  foreignKey: 'variationId',
   as: 'product',
 });
-Product.hasMany(SaleProduct, {
-  foreignKey: 'productId',
+Variation.hasMany(SaleProduct, {
+  foreignKey: 'variationId',
   as: 'sales',
 });
 
