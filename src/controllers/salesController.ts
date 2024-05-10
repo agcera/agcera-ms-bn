@@ -6,6 +6,7 @@ import { ClientTypesEnum, UserRolesEnum } from '@src/types/user.types';
 import { type Response } from 'express';
 import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
+import Variation from '@database/models/variation';
 
 class SalesController extends BaseController {
   async getAllSales(req: ExtendedRequest, res: Response): Promise<Response> {
@@ -88,7 +89,7 @@ class SalesController extends BaseController {
 
   async createSale(req: ExtendedRequest, res: Response): Promise<Response | undefined> {
     const user = req.user!;
-    const { products, paymentMethod, clientId, clientType, storeId } = req.body;
+    const { variations, paymentMethod, clientId, clientType, storeId } = req.body;
 
     // Check if the user is allowed to create a sale in the store
     if (user.role === 'keeper' && user.storeId !== storeId) {
@@ -126,31 +127,58 @@ class SalesController extends BaseController {
     }
 
     // Check if the products exist and are available in the store
+    // here we will find the products related to the variations provided
+    const chosen_variations = await Variation.findAll({ where: { id: Object.keys(variations) } });
+
+    // check if all variations were found
+    if (chosen_variations.length !== Object.keys(variations).length) {
+      return res.status(404).json({
+        status: 404,
+        message: 'Some of the variations were not found',
+      });
+    }
+
+    const productId_and_variation: any = {};
+
+    for (let i = 0; i < chosen_variations.length; i++) {
+      productId_and_variation[chosen_variations[i].productId] = chosen_variations[i].id;
+    }
+
+    // console.log(productId_and_variation['123e4567-e89b-12d3-a456-426614174001'])
+
+    // return res.send({message: 'we are here', productId_and_variation})
+    // check if the products exists in the stores
+
     const storeProducts = store.products;
-    const productsIds = Object.keys(products);
+    const productsIds = Object.keys(productId_and_variation);
+    console.log(productsIds);
     for (let i = 0; i < productsIds.length; i++) {
       const product = storeProducts?.find((storeProduct) => storeProduct.productId === productsIds[i]);
+
       if (!product) {
         return res.status(404).json({
           status: 404,
-          message: `Product with id ${productsIds[i]} not found in the store with id ${storeId}`,
+          message: `Product with id ${productsIds[i]} related to variation ${productId_and_variation[productsIds[i]]} not found in the store with id ${storeId}`,
         });
       }
-      if (product.quantity < products[productsIds[i]]) {
+      console.log(product.quantity < variations[productId_and_variation[productsIds[i]]]);
+      if (product.quantity < variations[productId_and_variation[productsIds[i]]]) {
         return res.status(400).json({
           status: 400,
-          message: `Requested quantity of product with id ${productsIds[i]} is not available`,
+          message: `Requested quantity of product with id ${productsIds[i]} related to ${productId_and_variation[productsIds[i]]} is not available`,
         });
       }
+
+      console.log('round ', i);
     }
 
     // Create the sale
-    const sale = await SaleServices.createSale(products, paymentMethod, clientId, clientType, storeId);
+    const sale = await SaleServices.createSale(variations, paymentMethod, clientId, clientType, storeId);
 
     // Update the quantity of the products in the store
     for (let i = 0; i < productsIds.length; i++) {
       const product = storeProducts?.find((storeProduct) => storeProduct.productId === productsIds[i]);
-      product!.quantity -= products[productsIds[i]];
+      product!.quantity -= variations[productId_and_variation[productsIds[i]]];
       await product!.save();
     }
 

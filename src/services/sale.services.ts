@@ -17,8 +17,15 @@ class SaleServices {
     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
     include: [
       {
-        association: 'product',
-        attributes: ['name'], // Include the 'name' attribute
+        association: 'variation',
+        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] }, // Include the 'name'
+
+        include: [
+          {
+            association: 'product',
+            attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+          },
+        ],
       },
     ],
   };
@@ -50,10 +57,10 @@ class SaleServices {
     if (!sale) {
       throw new Error('Error creating sale');
     }
-    const productIds = Object.keys(products);
-    for (let i = 0; i < productIds.length; i++) {
-      const productId = productIds[i];
-      const quantity = products[productId];
+    const variationIds = Object.keys(products);
+    for (let i = 0; i < variationIds.length; i++) {
+      const variationId = variationIds[i];
+      const quantity = products[variationId];
       await SaleProduct.create({ saleId: sale.id, variationId, quantity });
     }
 

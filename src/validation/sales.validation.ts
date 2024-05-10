@@ -8,7 +8,7 @@ export type CreateSaleProduct = {
 };
 
 export const createSaleSchema = Joi.object({
-  products: Joi.object().pattern(Joi.string().required(), Joi.number().integer().required()).min(1).required(),
+  variations: Joi.object().pattern(Joi.string().required(), Joi.number().integer().required()).min(1).required(),
   paymentMethod: Joi.string()
     .valid(...Object.values(PaymentMethodsEnum))
     .required(),
@@ -17,7 +17,7 @@ export const createSaleSchema = Joi.object({
       Joi.string()
         .pattern(/^\+\d{12}$/)
         .message('Please provide a valid phone number that starts with + and have 12 digits for clientId'),
-      Joi.string().guid().message('Invalid UUID for clientId')
+      Joi.string().uuid().message('Invalid UUID for clientId')
     )
     .required(),
   clientType: Joi.string()

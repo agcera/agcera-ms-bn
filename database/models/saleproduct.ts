@@ -61,7 +61,7 @@ SaleProduct.init(
 
 SaleProduct.belongsTo(Variation, {
   foreignKey: 'variationId',
-  as: 'product',
+  as: 'variation',
 });
 Variation.hasMany(SaleProduct, {
   foreignKey: 'variationId',

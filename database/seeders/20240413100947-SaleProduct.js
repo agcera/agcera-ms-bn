@@ -15,7 +15,7 @@ module.exports = {
           id: '5d432d64-5991-4c00-9f70-7bc89e4375e1',
           quantity: 10,
           saleId: '7ffdcde2-a8dc-427f-bac2-863f52401fc0',
-          variationIdId: '3f33b9d1-9b11-4d85-a3c3-8d1676a67111',
+          variationId: '3f33b9d1-9b11-4d85-a3c3-8d1676a67111',
           createdAt: new Date(),
         },
       ],

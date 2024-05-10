@@ -13,6 +13,7 @@ module.exports = {
           productId: '123e4567-e89b-12d3-a456-426614174001',
           createdAt: new Date(),
         },
+
         {
           id: 'a5aa7e8b-9306-4ff2-a19a-5ab633c206c1',
           quantity: 50,
@@ -25,6 +26,13 @@ module.exports = {
           quantity: 10,
           storeId: '143e4667-a81d-12d3-c356-469311174301',
           productId: '123e4567-e89b-12d3-a456-426614174003',
+          createdAt: new Date(),
+        },
+        {
+          id: 'a5aa7e8b-9306-4ff2-a19a-5ab633c206c4',
+          quantity: 10,
+          storeId: '143e4667-a81d-12d3-c356-469311174301',
+          productId: '123e4567-e89b-12d3-a456-426614174002',
           createdAt: new Date(),
         },
         {
