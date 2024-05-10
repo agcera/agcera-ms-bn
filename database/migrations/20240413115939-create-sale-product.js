@@ -22,11 +22,11 @@ module.exports = {
           key: 'id',
         },
       },
-      productId: {
+      variationId: {
         allowNull: false,
         type: Sequelize.UUID,
         references: {
-          model: 'Products',
+          model: 'Variations',
           key: 'id',
         },
       },
