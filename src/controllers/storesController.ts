@@ -6,6 +6,7 @@ import { BaseController } from '.';
 import ProductServices from '@src/services/product.services';
 import UserService from '@src/services/user.services';
 import { UserRolesEnum } from '@src/types/user.types';
+import User from '@database/models/user';
 
 class StoresController extends BaseController {
   async createStore(req: Request, res: Response): Promise<Response> {
@@ -41,7 +42,7 @@ class StoresController extends BaseController {
 
     const newStore = await StoreServices.create({ name, location, phone, isActive });
     for (let i = 0; i < Keepers.length; i++) {
-      const keeper = keepers[i];
+      const keeper = Keepers[i];
       keeper.storeId = newStore.id;
       await keeper.save();
     }
@@ -101,8 +102,8 @@ class StoresController extends BaseController {
 
   // update store
   async updateStore(req: ExtendedRequest, res: Response): Promise<Response> {
-    const { id: userId, role: userRole, storeId } = req.user!;
-    const { id } = req.params;
+    const { id: userId, role: userRole, storeId: userStoreId } = req.user!;
+    const { id: storeId } = req.params;
     const { name, location, phone, isActive, keepers = [] } = req.body;
 
     const include: IncludeOptions[] = [
@@ -114,10 +115,10 @@ class StoresController extends BaseController {
       },
     ];
     // get the to be updated store
-    const store = await StoreServices.getStoreById(id, include);
+    const store = await StoreServices.getStoreById(storeId, include);
 
     // check if the user is a keeper of this store to allow him to update the store
-    if (userRole === UserRolesEnum.KEEPER && storeId !== id) {
+    if (userRole === UserRolesEnum.KEEPER && userStoreId !== storeId) {
       return res.status(403).json({
         status: 'fail',
         message: 'You are not allowed to update this store details',
@@ -132,10 +133,10 @@ class StoresController extends BaseController {
     }
 
     // Stop the operation if we are trying to update the main store name
-    if (name && store.name === 'main' && name !== 'main') {
+    if (name && store.name === 'main' && (name || keepers)) {
       return res.status(403).json({
         status: 'fail',
-        message: 'You cannot update the main store name',
+        message: 'You cannot update the main store name or keepers',
       });
     }
 
@@ -148,7 +149,7 @@ class StoresController extends BaseController {
     // get another store with the same name or phone number
     const duplicateStore = await StoreServices.getOneStore({
       [Op.or]: [{ name: store.name }, { phone: store.phone }],
-      id: { [Op.not]: id },
+      id: { [Op.not]: storeId },
     });
 
     // provide appropriate error message if it exists
@@ -182,16 +183,29 @@ class StoresController extends BaseController {
     // save the store
     await store.save();
 
-    // update the keepers
-    for (let i = 0; i < newKeepers.length; i++) {
-      const keeper = newKeepers[i];
-      keeper.storeId = store.id;
-      await keeper.save();
-    }
+    // Remove old keepers
+    const oldUpdate = (await UserService.bulkUpdateUsers({ role: UserRolesEnum.KEEPER, storeId }, { storeId: null }, [
+      'id',
+      'storeId',
+      'updatedAt',
+    ])) as [affectedCount: number, affectedRows: User[]];
+    // Add new keepers
+    const newUpdate = (await UserService.bulkUpdateUsers(
+      { role: UserRolesEnum.KEEPER, id: { [Op.in]: keepers } },
+      { storeId },
+      ['id', 'storeId', 'updatedAt']
+    )) as [affectedCount: number, affectedRows: User[]];
+    // Merge the old and new updated keepers
+    const updatedUsers = [...oldUpdate[1]].reduce((acc, user) => {
+      if (!acc.find((u) => u.id === user.id)) {
+        acc.push(user);
+      }
+      return acc;
+    }, newUpdate[1]);
 
     return res.status(200).json({
       status: 'success',
-      data: store,
+      data: { store, updatedUsers },
     });
   }
 
