@@ -26,7 +26,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare gender: string | null;
   declare isActive: boolean | null;
 
-  declare storeId: ForeignKey<Store['id']>;
+  declare storeId?: CreationOptional<ForeignKey<Store['id'] | null>>;
 
   declare sales?: NonAttribute<Sale[]>;
 
@@ -89,7 +89,7 @@ User.init(
     },
     storeId: {
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: 'Stores',
         key: 'id',

@@ -50,7 +50,7 @@ module.exports = {
       },
       storeId: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'Stores',
           key: 'id',

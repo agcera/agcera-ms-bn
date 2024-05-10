@@ -64,7 +64,7 @@ class UserService {
     return await User.findOne({ paranoid: deleted, where: { ...where }, attributes: { exclude: ['password'] } });
   }
 
-  //update user
+  //get all user
   static async getAllUsers(queryData?: GetAllRequestQuery, where?: WhereOptions, includes?: IncludeOptions[]) {
     const include: IncludeOptions[] = [this.DEFAULT_STORE_INCLUDES, ...(includes ?? [])];
 
@@ -73,6 +73,31 @@ class UserService {
     );
 
     return { users: rows, total: count };
+  }
+
+  //update users
+  static async bulkUpdateUsers(
+    where: WhereOptions,
+    updateData: Partial<User>,
+    returning?:
+      | boolean
+      | (
+          | 'password'
+          | 'id'
+          | 'name'
+          | 'phone'
+          | 'location'
+          | 'role'
+          | 'email'
+          | 'gender'
+          | 'isActive'
+          | 'storeId'
+          | 'createdAt'
+          | 'updatedAt'
+          | 'deletedAt'
+        )[]
+  ): Promise<[number, User[]] | [number]> {
+    return await User.update(updateData, { where, returning: returning === undefined ? true : returning });
   }
 }
 
