@@ -17,7 +17,7 @@ class SaleServices {
     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
     include: [
       {
-        association: 'variation',
+        association: 'variations',
         attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] }, // Include the 'name'
 
         include: [

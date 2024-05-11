@@ -40,7 +40,7 @@ SaleProduct.init(
       allowNull: false,
       type: DataTypes.UUID,
       references: {
-        model: 'Products',
+        model: 'Variations',
         key: 'id',
       },
     },
@@ -61,7 +61,7 @@ SaleProduct.init(
 
 SaleProduct.belongsTo(Variation, {
   foreignKey: 'variationId',
-  as: 'variation',
+  as: 'variations',
 });
 Variation.hasMany(SaleProduct, {
   foreignKey: 'variationId',

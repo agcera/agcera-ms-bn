@@ -69,7 +69,7 @@ module.exports = {
         // give it agcera
         {
           id: 'a5aa7e8b-9306-4ff2-a19a-5ab633c206c7',
-          quantity: 10,
+          quantity: 50,
           storeId: '143e4667-a81d-12d3-c356-469311174301',
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
           createdAt: new Date(),
