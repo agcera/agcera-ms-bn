@@ -20,6 +20,11 @@ module.exports = {
         allowNull: false,
         defaultValue: 'https://via.placeholder.com/150?text=image%20not%20found',
       },
+      description: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+        defaultValue: ''
+      },
       type: {
         type: Sequelize.ENUM('STANDARD', 'SPECIAL'),
         allowNull: false,

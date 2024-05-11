@@ -46,7 +46,7 @@ class SaleServices {
   }
 
   static async createSale(
-    products: { [key: string]: number },
+    variations: { [key: string]: number },
     paymentMethod: PaymentMethodsEnum,
     clientId: string,
     clientType: ClientTypesEnum,
@@ -57,13 +57,13 @@ class SaleServices {
     if (!sale) {
       throw new Error('Error creating sale');
     }
-    const variationIds = Object.keys(products);
+    const variationIds = Object.keys(variations);
     for (let i = 0; i < variationIds.length; i++) {
       const variationId = variationIds[i];
-      const quantity = products[variationId];
+      const quantity = variations[variationId];
       await SaleProduct.create({ saleId: sale.id, variationId, quantity });
     }
-
+    // Reload the sale with the products
     return await sale.reload({ include: this.DEFAULT_PRODUCT_INCLUDE });
   }
 }

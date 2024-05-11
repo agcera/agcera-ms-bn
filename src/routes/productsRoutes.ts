@@ -28,7 +28,6 @@ router.patch(
 router.delete('/:id', isAdmin, validateParams(), productsController.deleteProduct);
 
 // Variations related routes
-
 router.get(
   '/:productId/variations',
   isLoggedIn,

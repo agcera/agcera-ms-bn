@@ -1,4 +1,5 @@
 'use strict';
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -14,10 +15,12 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      description: {
-        type: Sequelize.TEXT,
+      number: {
+        type: Sequelize.DECIMAL,
         allowNull: false,
-        defaultValue: ''
+        validate:{
+          min: 0
+        }
       },
       costPrice: {
         type: Sequelize.DECIMAL,

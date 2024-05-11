@@ -13,9 +13,9 @@ import Product from './product';
 class Variation extends Model<InferAttributes<Variation>, InferCreationAttributes<Variation>> {
   declare id: CreationOptional<string>;
   declare name: string;
-  declare description: string | null;
   declare costPrice: number;
   declare sellingPrice: number;
+  declare number: number;
 
   declare productId: ForeignKey<Product['id']>;
 
@@ -37,10 +37,12 @@ Variation.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    description: {
-      type: DataTypes.TEXT,
+    number: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: '',
+      validate: {
+        min: 0,
+      },
     },
     costPrice: {
       type: DataTypes.DECIMAL,

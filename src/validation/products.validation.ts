@@ -12,11 +12,12 @@ export const createNewProductSchema = Joi.object({
         name: Joi.string().min(3).required(),
         costPrice: Joi.number().min(0).required(),
         sellingPrice: Joi.number().min(Joi.ref('costPrice')).required(),
-        description: Joi.string(),
+        number: Joi.number().min(0).required(),
       })
     )
     .unique('name')
     .min(1)
+    .unique('number')
     .required(),
 });
 
@@ -28,9 +29,10 @@ export const updateProductSchema = Joi.object({
         name: Joi.string().min(3).required(),
         costPrice: Joi.number().min(0).required(),
         sellingPrice: Joi.number().min(Joi.ref('costPrice')).required(),
-        description: Joi.string(),
+        number: Joi.number().min(0).required(),
       })
     )
     .unique('name')
+    .unique('number')
     .min(1),
 });
