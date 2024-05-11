@@ -6,18 +6,37 @@ import { IncludeOptions, WhereOptions } from 'sequelize';
 export default class ProductServices {
   static DEFAULT_VARIATION_INCLUDE: IncludeOptions = {
     association: 'variations',
+    attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt', 'productId', 'costPrice'] },
+  };
+
+  // variation include when user is admin
+  // variaon inli user
+  // includde when keeper
+
+  // the include when the user is a keeper with variations
+  static VARIATION_INCLUDE_FOR_ADMIN: IncludeOptions = {
+    association: 'variations',
     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt', 'productId'] },
   };
+
   static DEFAULT_STORES_INCLUDE: IncludeOptions = {
     association: 'stores',
     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt', 'productId'] },
     include: [{ association: 'store', attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] } }],
   };
-  static DEFAULT_INCLUDES: IncludeOptions[] = [this.DEFAULT_VARIATION_INCLUDE, this.DEFAULT_STORES_INCLUDE];
+  static DEFAULT_INCLUDES: IncludeOptions[] = [this.DEFAULT_VARIATION_INCLUDE];
 
   // get all products
-  static async getAllProducts(queryData?: GetAllRequestQuery, where?: WhereOptions, includes?: IncludeOptions[]) {
-    const include: IncludeOptions[] = [this.DEFAULT_VARIATION_INCLUDE, ...(includes ?? [])];
+  static async getAllProducts(
+    queryData?: GetAllRequestQuery,
+    where?: WhereOptions,
+    includes?: IncludeOptions[],
+    isAdmin?: boolean
+  ) {
+    const include: IncludeOptions[] = [
+      isAdmin ? this.VARIATION_INCLUDE_FOR_ADMIN : this.DEFAULT_VARIATION_INCLUDE,
+      ...(includes ?? []),
+    ];
 
     const { count, rows } = await Product.findAndCountAll(
       findQueryGenerators(Product.getAttributes(), queryData, { where, include })
@@ -34,10 +53,15 @@ export default class ProductServices {
   }
 
   // get one product
-  static async getOneProduct(where?: WhereOptions, include?: IncludeOptions[]) {
+  static async getOneProduct(where?: WhereOptions, includes?: IncludeOptions[], isAdmin?: boolean) {
+    const include: IncludeOptions[] = [
+      isAdmin ? this.VARIATION_INCLUDE_FOR_ADMIN : this.DEFAULT_VARIATION_INCLUDE,
+      ...(includes ?? []),
+    ];
+
     return await Product.findOne({
       where,
-      include: [...this.DEFAULT_INCLUDES, ...(include ?? [])],
+      include,
     });
   }
 

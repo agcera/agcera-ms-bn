@@ -6,7 +6,7 @@ import { UserRolesEnum } from '@src/types/user.types';
 import { handleDeleteUpload, handleUpload } from '@src/utils/cloudinary';
 import { UploadApiErrorResponse } from 'cloudinary';
 import { Request, Response } from 'express';
-import { IncludeOptions, Op } from 'sequelize';
+import { Op } from 'sequelize';
 import { BaseController } from '.';
 
 export default class ProductsController extends BaseController {
@@ -14,7 +14,13 @@ export default class ProductsController extends BaseController {
   async getAllProducts(req: ExtendedRequest, res: Response): Promise<Response> {
     const { search, limit, skip, sort } = req.query;
 
-    const { products, total } = await ProductServices.getAllProducts({ search, limit, skip, sort });
+    const isAdmin = req.user?.role === UserRolesEnum.ADMIN;
+    const { products, total } = await ProductServices.getAllProducts(
+      { search, limit, skip, sort },
+      undefined,
+      undefined,
+      isAdmin
+    );
 
     return res.status(200).json({
       status: 'success',
@@ -24,35 +30,40 @@ export default class ProductsController extends BaseController {
 
   // get one product
   async getOneProduct(req: ExtendedRequest, res: Response): Promise<Response> {
-    const { role: userRole, id: userId } = req.user!;
+    const { role: userRole } = req.user!;
     const { id } = req.params;
 
-    const include: IncludeOptions[] = [];
+    // const include: IncludeOptions[] = [];
 
-    if ([UserRolesEnum.USER, UserRolesEnum.KEEPER].includes(userRole)) {
-      // This will make sure that the user can't see the store and other user account associated with the product
-      include.push({
-        association: 'stores',
-        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt', 'productId'] },
-        include: [
-          {
-            association: 'store',
-            attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
-            required: true,
-            include: [
-              {
-                association: 'users',
-                where: { id: userId },
-                attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'deletedAt'] },
-                required: true,
-              },
-            ],
-          },
-        ],
-      });
-    }
+    // if ([UserRolesEnum.USER, UserRolesEnum.KEEPER].includes(userRole)) {
+    //   // This will make sure that the user can't see the store and other user account associated with the product
+    //   include.push({
+    //     association: 'stores',
+    //     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt', 'productId'] },
+    //     // required: userRole === UserRolesEnum.USER,
+    //     // include: [
+    //     //   {
+    //     //     association: 'store',
+    //     //     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+    //     //     required: true,
+    //     //     include: [
+    //     //       {
+    //     //         association: 'users',
+    //     //         where: { id: userId, role: UserRolesEnum.KEEPER },
+    //     //         attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'deletedAt'] },
+    //     //         required: true,
+    //     //       },
+    //     //     ],
+    //     //   },
+    //     // ],
+    //   });
+    // }
 
-    const product = await ProductServices.getOneProduct({ id }, include);
+    // add in the request a condition to check if the user is admin using just the userRole captured before and
+
+    const isAdmin = userRole === UserRolesEnum.ADMIN;
+
+    const product = await ProductServices.getOneProduct({ id }, undefined, isAdmin);
     if (!product) {
       return res.status(404).json({
         status: 'fail',

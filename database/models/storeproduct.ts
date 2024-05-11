@@ -64,7 +64,7 @@ StoreProduct.init(
 
 StoreProduct.belongsTo(Product, {
   foreignKey: 'productId',
-  as: 'product',
+  as: 'products',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
