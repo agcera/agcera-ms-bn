@@ -25,14 +25,14 @@ class SalesController extends BaseController {
         include.push({
           association: 'store',
           required: true,
-          include: [
-            {
-              association: 'users',
-              where: { id: userId },
-              required: true,
-              attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'deletedAt'] },
-            },
-          ],
+          // include: [
+          //   {
+          //     association: 'users',
+          //     where: { id: userId },
+          //     required: true,
+          //     attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'deletedAt'] },
+          //   },
+          // ],
         });
         break;
       case 'admin':
@@ -134,7 +134,7 @@ class SalesController extends BaseController {
     if (chosen_variations.length !== Object.keys(variations).length) {
       return res.status(404).json({
         status: 404,
-        message: 'Some of the variations were not found',
+        message: 'some variations chosen are not available',
       });
     }
 
@@ -144,14 +144,11 @@ class SalesController extends BaseController {
       productId_and_variation[chosen_variations[i].productId] = chosen_variations[i].id;
     }
 
-    // console.log(productId_and_variation['123e4567-e89b-12d3-a456-426614174001'])
-
     // return res.send({message: 'we are here', productId_and_variation})
     // check if the products exists in the stores
-
     const storeProducts = store.products;
     const productsIds = Object.keys(productId_and_variation);
-    console.log(productsIds);
+
     for (let i = 0; i < productsIds.length; i++) {
       const product = storeProducts?.find((storeProduct) => storeProduct.productId === productsIds[i]);
 
@@ -169,7 +166,7 @@ class SalesController extends BaseController {
         });
       }
 
-      console.log('round ', i);
+      console.log('round go', i);
     }
 
     // Create the sale
@@ -178,7 +175,9 @@ class SalesController extends BaseController {
     // Update the quantity of the products in the store
     for (let i = 0; i < productsIds.length; i++) {
       const product = storeProducts?.find((storeProduct) => storeProduct.productId === productsIds[i]);
-      product!.quantity -= variations[productId_and_variation[productsIds[i]]];
+      // find the variation related to the product from the chosen variations found before. we can get the variation id from the productId_and_variation object
+      const this_variation = chosen_variations?.find((variation) => variation.productId === productsIds[i]);
+      product!.quantity -= variations[productId_and_variation[productsIds[i]]] * this_variation!.number;
       await product!.save();
     }
 

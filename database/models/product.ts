@@ -19,6 +19,7 @@ class Product extends Model<InferAttributes<Product>, InferCreationAttributes<Pr
   declare name: string;
   declare type: ProductTypesEnum;
   declare image: CreationOptional<string>;
+  declare description: string;
 
   declare variations: NonAttribute<Variation[]>;
   declare stores?: NonAttribute<StoreProduct[]>;
@@ -53,6 +54,11 @@ Product.init(
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: 'https://via.placeholder.com/150?text=image%20not%20found',
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      defaultValue: '',
     },
     type: {
       type: DataTypes.ENUM(...Object.values(ProductTypesEnum)),

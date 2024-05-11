@@ -12,7 +12,7 @@ export default class VariationServices {
     const product = await ProductServices.getProductByPk(productId);
     if (!product) return;
 
-    const { name, costPrice, sellingPrice, description } = data;
+    const { name, costPrice, sellingPrice, number } = data;
 
     const variations: Variation[] = product['variations'] ?? [];
     let variation: Variation | undefined = variations.find((v) => v.name === name);
@@ -20,7 +20,7 @@ export default class VariationServices {
     if (variation) {
       costPrice && (variation.costPrice = costPrice);
       sellingPrice && (variation.sellingPrice = sellingPrice);
-      description && (variation.description = description);
+      number && (variation.number = number);
       await variation.save();
     } else {
       variation = await Variation.create({ ...data, productId });
