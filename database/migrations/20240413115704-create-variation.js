@@ -16,10 +16,10 @@ module.exports = {
         allowNull: false,
       },
       number: {
-        type: Sequelize.DECIMAL,
+        type: Sequelize.INTEGER,
         allowNull: false,
         validate:{
-          min: 0
+          min: 1
         }
       },
       costPrice: {

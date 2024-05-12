@@ -100,7 +100,7 @@ SaleProduct.belongsTo(Sale, {
 });
 Sale.hasMany(SaleProduct, {
   foreignKey: 'saleId',
-  as: 'products',
+  as: 'variations',
 });
 
 export default Sale;
