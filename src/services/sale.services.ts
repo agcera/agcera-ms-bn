@@ -13,13 +13,12 @@ class SaleServices {
   };
 
   static DEFAULT_PRODUCT_INCLUDE: IncludeOptions = {
-    association: 'products',
+    association: 'variations',
     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
     include: [
       {
-        association: 'variations',
+        association: 'variation',
         attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] }, // Include the 'name'
-
         include: [
           {
             association: 'product',

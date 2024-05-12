@@ -6,7 +6,7 @@ import { findQueryGenerators } from '@src/utils/generators';
 import { IncludeOptions, WhereOptions } from 'sequelize';
 
 class UserService {
-  static DEFAULT_STORE_INCLUDES: IncludeOptions = {
+  static DEFAULT_STORE_INCLUDE: IncludeOptions = {
     model: Store,
     as: 'store',
     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
@@ -23,16 +23,19 @@ class UserService {
     role: UserRolesEnum
   ) {
     // remove the password and return the new user
-    const newUser: Omit<User, 'password'> = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      phone,
-      gender,
-      location,
-      storeId,
-      role,
-    });
+    const newUser: Omit<User, 'password'> = await User.create(
+      {
+        name,
+        email,
+        password: hashedPassword,
+        phone,
+        gender,
+        location,
+        storeId,
+        role,
+      },
+      { include: [this.DEFAULT_STORE_INCLUDE] }
+    );
 
     const newUserObject = newUser.toJSON();
 
@@ -44,7 +47,7 @@ class UserService {
 
   //login service
   static async loginUser(phone: string) {
-    const user = await User.findOne({ where: { phone } });
+    const user = await User.findOne({ where: { phone }, include: [this.DEFAULT_STORE_INCLUDE] });
     if (!user) {
       return null;
     }
@@ -53,7 +56,10 @@ class UserService {
 
   //get user by id
   static async getUserById(id: string) {
-    const user = await User.findByPk(id, { attributes: { exclude: ['password'] } });
+    const user = await User.findByPk(id, {
+      attributes: { exclude: ['password'] },
+      include: [this.DEFAULT_STORE_INCLUDE],
+    });
     if (!user) {
       return null;
     }
@@ -61,12 +67,17 @@ class UserService {
   }
 
   static async getOneUser(where: WhereOptions, deleted: boolean = false) {
-    return await User.findOne({ paranoid: deleted, where: { ...where }, attributes: { exclude: ['password'] } });
+    return await User.findOne({
+      paranoid: deleted,
+      where: { ...where },
+      attributes: { exclude: ['password'] },
+      include: [this.DEFAULT_STORE_INCLUDE],
+    });
   }
 
   //get all user
   static async getAllUsers(queryData?: GetAllRequestQuery, where?: WhereOptions, includes?: IncludeOptions[]) {
-    const include: IncludeOptions[] = [this.DEFAULT_STORE_INCLUDES, ...(includes ?? [])];
+    const include: IncludeOptions[] = [this.DEFAULT_STORE_INCLUDE, ...(includes ?? [])];
 
     const { count, rows } = await User.findAndCountAll(
       findQueryGenerators(Store.getAttributes(), queryData, { where, include, attributes: { exclude: ['password'] } })

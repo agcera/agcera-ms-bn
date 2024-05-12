@@ -49,24 +49,16 @@ class SalesController extends BaseController {
   }
 
   async getOneSale(req: ExtendedRequest, res: Response): Promise<Response> {
-    const { role: userRole, id: userId } = req.user!;
+    const { role: userRole, id: userId, storeId } = req.user!;
     const { id } = req.params;
 
     const include: IncludeOptions = {
       association: 'store',
       attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
-      include: [
-        {
-          association: 'users',
-          required: false,
-          where: { id: userId },
-          attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'deletedAt'] },
-        },
-      ],
     };
     const sale = await SaleServices.getOneSale({ id }, [include]);
 
-    if ((userRole === 'user' && sale?.clientId !== userId) || (userRole === 'keeper' && sale?.store?.id !== userId)) {
+    if ((userRole === 'user' && sale?.clientId !== userId) || (userRole === 'keeper' && sale?.store.id !== storeId)) {
       return res.status(403).json({
         status: 403,
         message: 'You are not allowed to view this sale or sale does not exist',
@@ -81,7 +73,7 @@ class SalesController extends BaseController {
 
     return res.status(200).json({
       status: 200,
-      message: sale,
+      data: sale,
     });
   }
 
@@ -190,7 +182,7 @@ class SalesController extends BaseController {
 
     return res.status(200).json({
       status: 200,
-      message: sale,
+      data: sale,
     });
   }
 
