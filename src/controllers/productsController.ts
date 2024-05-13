@@ -177,10 +177,11 @@ export default class ProductsController extends BaseController {
       handleDeleteUpload(previousProduct.image).catch((error) => {
         console.error('Failed to delete the old image', error);
       });
-    // update or create variations
-    for (const variation of variations ?? []) {
-      await VariationServices.updateOrCreateVariation(product.id, variation);
-    }
+    // Delete all the previous product variations
+    await VariationServices.deleteVariations({ productId: id });
+    // Create all the new variations
+    await VariationServices.addManyVariations(product.id, variations);
+
     // Reload the product to get the new variations
     await product.reload();
 

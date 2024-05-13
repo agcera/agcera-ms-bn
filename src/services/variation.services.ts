@@ -1,7 +1,13 @@
 import Variation from '@database/models/variation';
 import ProductServices from './product.services';
+import { WhereOptions } from 'sequelize';
 
 export default class VariationServices {
+  static async deleteVariations(where: WhereOptions) {
+    // Add variations
+    return Variation.destroy({ where });
+  }
+
   static async addManyVariations(productId: string, variations: any[]) {
     // Add variations
     return Variation.bulkCreate(variations.map((variation: any) => ({ ...variation, productId })));
