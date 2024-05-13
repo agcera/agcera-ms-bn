@@ -7,6 +7,8 @@ import ProductServices from '@src/services/product.services';
 import UserService from '@src/services/user.services';
 import { UserRolesEnum } from '@src/types/user.types';
 import User from '@database/models/user';
+import StoreProduct from '@database/models/storeproduct';
+import ProductsMovement from '@database/models/productsmovement';
 
 class StoresController extends BaseController {
   async createStore(req: Request, res: Response): Promise<Response> {
@@ -296,6 +298,94 @@ class StoresController extends BaseController {
     return res.status(200).json({
       status: 'success',
       data: { users, total },
+    });
+  }
+
+  // admin add product to store
+  async addProductToStore(req: ExtendedRequest, res: Response): Promise<Response> {
+    const { productId, quantity, from, to } = req.body;
+
+    // check if the stores we want to take froma nd to exist
+
+    // check from and bring it with products association
+    const include: IncludeOptions[] = [{ association: 'products' }];
+
+    let fromStore = null;
+    let toStore = null;
+
+    if (from !== 'main') {
+      fromStore = await StoreServices.getOneStore({ id: from }, include);
+    } else {
+      fromStore = await StoreServices.getOneStore({ name: from }, include);
+    }
+
+    if (!fromStore) {
+      return res.status(404).json({
+        status: 404,
+        message: `Source Store ${from} not found`,
+      });
+    }
+
+    // check for the to store
+    if (to !== 'main') {
+      toStore = await StoreServices.getOneStore({ id: to }, include);
+    } else {
+      toStore = await StoreServices.getOneStore({ name: to }, include);
+    }
+
+    if (!toStore) {
+      return res.status(404).json({
+        status: 404,
+        message: `Destination Store ${to} not found`,
+      });
+    }
+
+    // check if the product exists in the source store and check if the quantity is available
+    const product = fromStore?.products?.find((p) => p.productId === productId);
+
+    if (!product) {
+      return res.status(404).json({
+        status: 404,
+        message: `Product not found in the source store ${fromStore.name}`,
+      });
+    }
+
+    // check if the requested quantiy exists in the source store. we will check this only when we are not moving products from main to main
+    if (fromStore?.name !== 'main' && toStore?.name !== 'main' && product.quantity < quantity) {
+      return res.status(400).json({
+        status: 400,
+        message: `The quantity of Product ${product} not available in the source store ${fromStore.name}`,
+      });
+    }
+
+    // increment the products of the destinatin store
+    const addProducts = await StoreProduct.increment({ quantity }, { where: { storeId: toStore?.id, productId } });
+
+    if (!addProducts) {
+      return res.status(400).json({
+        status: 400,
+        message: `Product not added to store ${toStore?.name}`,
+      });
+    }
+
+    // decrement the products of the source store if we are not moving products from main to main
+    if (fromStore?.name !== 'main' && toStore?.name !== 'main') {
+      await StoreProduct.increment({ quantity: -quantity }, { where: { storeId: fromStore?.id, productId } });
+    }
+
+    // record the movement in the products movement table
+    await ProductsMovement.create({
+      quantity,
+      productId,
+      userId: req.user?.id,
+      from: fromStore?.id,
+      to: toStore?.id,
+    });
+
+    return res.status(201).json({
+      status: 201,
+      message: `Product added to store ${toStore?.name} from ${fromStore?.name} successfully`,
+      data: addProducts,
     });
   }
 }
