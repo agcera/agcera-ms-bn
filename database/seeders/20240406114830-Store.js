@@ -31,6 +31,14 @@ module.exports = {
           isActive: true,
           createdAt: new Date(),
         },
+        {
+          id: '00000000-0000-0000-0000-000000000001',
+          name: 'Expired',
+          location: 'Maputo 14',
+          phone: '+323343455463',
+          isActive:false,
+          createdAt: new Date(),
+        }
       ],
       {}
     );
