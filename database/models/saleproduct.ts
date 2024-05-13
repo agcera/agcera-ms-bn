@@ -1,7 +1,15 @@
-import { Model, DataTypes, InferAttributes, InferCreationAttributes, ForeignKey, CreationOptional } from 'sequelize';
-import Sale from './sale';
 import sequelize from '@database/connection';
 import Variation from '@database/models/variation';
+import {
+  CreationOptional,
+  DataTypes,
+  ForeignKey,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+  NonAttribute,
+} from 'sequelize';
+import Sale from './sale';
 
 class SaleProduct extends Model<InferAttributes<SaleProduct>, InferCreationAttributes<SaleProduct>> {
   declare readonly id: string | undefined;
@@ -10,6 +18,9 @@ class SaleProduct extends Model<InferAttributes<SaleProduct>, InferCreationAttri
   declare variationId: ForeignKey<Variation['id']>;
 
   declare quantity: number | undefined;
+
+  declare sale: NonAttribute<Sale>;
+  declare variation: NonAttribute<Variation>;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | undefined;
@@ -26,7 +37,7 @@ SaleProduct.init(
     },
     quantity: {
       allowNull: false,
-      type: DataTypes.DOUBLE,
+      type: DataTypes.INTEGER,
     },
     saleId: {
       allowNull: false,

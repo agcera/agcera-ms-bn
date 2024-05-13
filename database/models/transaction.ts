@@ -1,4 +1,12 @@
-import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import {
+  CreationOptional,
+  DataTypes,
+  ForeignKey,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+  NonAttribute,
+} from 'sequelize';
 import User from './user';
 import Store from './store';
 import sequelize from '@database/connection';
@@ -11,6 +19,9 @@ class Transaction extends Model<InferAttributes<Transaction>, InferCreationAttri
   declare userId: ForeignKey<User['id']>;
   declare storeId: ForeignKey<Store['id']>;
   declare type: TransactionTypesEnum;
+
+  declare store: NonAttribute<Store>;
+  declare user: NonAttribute<User>;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | undefined;

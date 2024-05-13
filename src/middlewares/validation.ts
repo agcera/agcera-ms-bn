@@ -47,6 +47,7 @@ export class ValidationMiddleware extends BaseMiddleware {
   };
 
   validateQueries = (req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith('/report')) return next();
     const { sort, role } = req.query;
 
     // Run below code if atleast one of the query parameters is present

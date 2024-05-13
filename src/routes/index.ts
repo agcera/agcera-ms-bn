@@ -17,7 +17,7 @@ router.use('/stores', storesRoutes);
 router.use('/products', productsRoutes);
 router.use('/sales', salesRoutes);
 router.use('/report', generateReport);
-router.use('/transaction', transactionRoutes);
+router.use('/transactions', transactionRoutes);
 
 router.post('/error', () => {
   throw new Error('This is an error');
