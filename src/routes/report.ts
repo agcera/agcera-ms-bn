@@ -1,8 +1,11 @@
-import { Router } from 'express';
 import GenerateReportController from '@src/controllers/generateReportController';
+import { isStoreKeeperUp } from '@src/middlewares/checkAuth';
+import { Router } from 'express';
 
 const router = Router();
 
-router.get('/', GenerateReportController.generate);
+const generateReportController = new GenerateReportController();
+
+router.get('/', isStoreKeeperUp, generateReportController.generate);
 
 export default router;

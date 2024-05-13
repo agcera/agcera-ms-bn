@@ -28,7 +28,7 @@ ProductsMovement.init(
     },
     quantity: {
       allowNull: false,
-      type: DataTypes.DECIMAL,
+      type: DataTypes.INTEGER,
     },
     productId: {
       allowNull: false,

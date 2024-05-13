@@ -12,7 +12,7 @@ module.exports = {
       },
       quantity: {
         allowNull: false,
-        type: Sequelize.DOUBLE,
+        type: Sequelize.INTEGER,
       },
       saleId: {
         allowNull: false,

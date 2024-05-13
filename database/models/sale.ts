@@ -29,10 +29,10 @@ class Sale extends Model<InferAttributes<Sale>, InferCreationAttributes<Sale>> {
   declare storeId: ForeignKey<Store['id']>;
 
   declare store: NonAttribute<Store>;
-  declare products: NonAttribute<SaleProduct[]>;
+  declare variations: NonAttribute<SaleProduct[]>;
 
   declare static associations: {
-    products: Association<SaleProduct, Sale>;
+    variations: Association<SaleProduct, Sale>;
     store: Association<Sale, Store>;
   };
 
