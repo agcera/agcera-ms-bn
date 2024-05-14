@@ -12,7 +12,7 @@ router.get('/', isLoggedIn, storesController.getStores);
 router.get('/all', storesController.getAllStoresNamesAndLocations);
 
 router.get('/:id', isLoggedIn, validateParams(), storesController.singleStore);
-router.patch('/:id', isStoreKeeperUp, validateParams(), validate(storeUpdateSchema), storesController.updateStore);
+router.patch('/:id', isAdmin, validateParams(), validate(storeUpdateSchema), storesController.updateStore);
 router.delete('/:id', isAdmin, validateParams(), storesController.deleteStore);
 
 router.get('/:storeId/products', isLoggedIn, validateParams(), storesController.getStoreProducts);

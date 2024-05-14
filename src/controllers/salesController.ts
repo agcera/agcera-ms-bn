@@ -1,3 +1,4 @@
+import { UserRolesEnum } from './../types/user.types';
 import SaleServices from '@src/services/sale.services';
 import StoreServices from '@src/services/store.services';
 import UserService from '@src/services/user.services';
@@ -200,7 +201,7 @@ class SalesController extends BaseController {
       });
     }
 
-    if (user.storeId !== sale.storeId) {
+    if (user.role !== UserRolesEnum.ADMIN && user.storeId !== sale.storeId) {
       return res.status(403).json({
         status: 403,
         message: 'You can only delete sales of your store',
