@@ -1,13 +1,15 @@
 import { UserRolesEnum } from './../types/user.types';
 import StoreServices from '@src/services/store.services';
 import { ExtendedRequest } from '@src/types/common.types';
+import { handleDeleteUpload, handleUpload } from '@src/utils/cloudinary';
 import bcrypt from 'bcrypt';
+import { UploadApiErrorResponse } from 'cloudinary';
 import { Request, Response } from 'express';
 import { Op, WhereOptions } from 'sequelize';
+import { BaseController } from '.';
 import userService from '../services/user.services';
 import { /* defaultTokenExpirySeconds,*/ generateToken, verifyToken } from '../utils/jwtFunctions';
 import sendEmail from '../utils/sendEmail';
-import { BaseController } from '.';
 
 class UsersController extends BaseController {
   async register(req: Request, res: Response): Promise<Response> {
@@ -47,8 +49,32 @@ class UsersController extends BaseController {
     // hash the password
     const hashedPassword = await bcrypt.hash(password, bcrypt.genSaltSync(10));
 
-    // check if the user already exists
-    const newUser = await userService.registerUser(name, hashedPassword, email, phone, gender, location, storeId, role);
+    // upload the user image and get the url
+    let url: string | null = null;
+    if (req.file) {
+      try {
+        url = await handleUpload(req.file, 'users');
+      } catch (error) {
+        return res.status(400).json({
+          status: 'fail',
+          message: (error as UploadApiErrorResponse).message || 'Failed while uploading the user image',
+        });
+      }
+    }
+
+    // check create the user
+    const image = url!;
+    const newUser = await userService.registerUser(
+      name,
+      hashedPassword,
+      email,
+      phone,
+      gender,
+      location,
+      storeId,
+      role,
+      image
+    );
 
     // generate token for the user
     const token = generateToken({ id: newUser.id, role: newUser.role });
@@ -289,13 +315,36 @@ class UsersController extends BaseController {
         message: 'An admin can only be registered in the main store.',
       });
     }
+    // upload the new image
+    let url: string | null = null;
+    if (req.file) {
+      try {
+        url = await handleUpload(req.file, 'users');
+      } catch (error) {
+        return res.status(400).json({
+          status: 'fail',
+          message: (error as UploadApiErrorResponse).message || 'Failed while uploading the product image',
+        });
+      }
+    }
+
+    // capture the image of the previouse product before saving the new one
+    const previousUserimage = user.image;
 
     name ? (user.name = name) : null;
     email ? (user.email = email) : null;
     phone ? (user.phone = phone) : null;
     storeId ? (user.storeId = storeId) : null;
+    url ? (user.image = url) : null;
 
     await user.save();
+
+    if (url) {
+      // No need to bother catching the error as the image is already updated
+      handleDeleteUpload(previousUserimage).catch((error) => {
+        console.error('Failed to delete the old image', error);
+      });
+    }
 
     delete (user.dataValues as { [key: string]: any }).password;
 
@@ -310,13 +359,6 @@ class UsersController extends BaseController {
     const user = req.user!;
     const { id } = req.params;
 
-    if (user.id === id) {
-      return res.status(403).json({
-        status: 'fail',
-        message: 'You cannot delete yourself, ask another admin to delete your account',
-      });
-    }
-
     const foundUser = await userService.getUserById(id);
     if (!foundUser) {
       return res.status(404).json({
@@ -324,9 +366,42 @@ class UsersController extends BaseController {
         message: 'User not found',
       });
     }
+    // get the user role that will be deleted
+    const userRole = foundUser.role;
+
+    // if the role tobe deleted is not user, be consious
+    if (userRole !== 'user') {
+      // check if the logged in user is admin
+      if (user.role !== 'admin') {
+        return res.status(403).json({
+          status: 403,
+          message: 'You are not allowed to delete this user',
+        });
+      }
+      if (user.id === id) {
+        return res.status(403).json({
+          status: 'fail',
+          message: 'You cannot delete yourself, ask another admin to delete your account',
+        });
+      }
+    } else {
+      if (user.id !== id) {
+        return res.status(403).json({
+          status: 403,
+          message: 'You are only allowed to delete your account',
+        });
+      }
+    }
 
     // delete the user
     await foundUser.destroy();
+
+    // delete the user from cloudinary
+
+    // No need to bother catching the error as the image is already updated
+    handleDeleteUpload(foundUser.image).catch((error) => {
+      console.error('Failed to delete the old image', error);
+    });
 
     return res.status(200).json({
       status: 'success',

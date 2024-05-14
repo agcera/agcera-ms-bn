@@ -28,6 +28,11 @@ module.exports = {
           isEmail: true,
         },
       },
+      image: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: 'https://via.placeholder.com/150?text=image%20not%20found',
+      },
       phone: {
         type: Sequelize.STRING,
         allowNull: false,

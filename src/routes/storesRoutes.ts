@@ -9,6 +9,8 @@ const storesController = new StoreController();
 
 router.post('/', isAdmin, validate(storeRegisterSchema), storesController.createStore);
 router.get('/', isLoggedIn, storesController.getStores);
+router.get('/all', storesController.getAllStoresNamesAndLocations);
+
 router.get('/:id', isLoggedIn, validateParams(), storesController.singleStore);
 router.patch('/:id', isStoreKeeperUp, validateParams(), validate(storeUpdateSchema), storesController.updateStore);
 router.delete('/:id', isAdmin, validateParams(), storesController.deleteStore);
