@@ -6,7 +6,7 @@ import { UserRolesEnum } from '@src/types/user.types';
 import { handleDeleteUpload, handleUpload } from '@src/utils/cloudinary';
 import { UploadApiErrorResponse } from 'cloudinary';
 import { Request, Response } from 'express';
-import { Op } from 'sequelize';
+import { IncludeOptions, Op } from 'sequelize';
 import { BaseController } from '.';
 
 export default class ProductsController extends BaseController {
@@ -30,40 +30,25 @@ export default class ProductsController extends BaseController {
 
   // get one product
   async getOneProduct(req: ExtendedRequest, res: Response): Promise<Response> {
-    const { role: userRole } = req.user!;
+    const { role: userRole, storeId } = req.user!;
     const { id } = req.params;
 
-    // const include: IncludeOptions[] = [];
-
-    // if ([UserRolesEnum.USER, UserRolesEnum.KEEPER].includes(userRole)) {
-    //   // This will make sure that the user can't see the store and other user account associated with the product
-    //   include.push({
-    //     association: 'stores',
-    //     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt', 'productId'] },
-    //     // required: userRole === UserRolesEnum.USER,
-    //     // include: [
-    //     //   {
-    //     //     association: 'store',
-    //     //     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
-    //     //     required: true,
-    //     //     include: [
-    //     //       {
-    //     //         association: 'users',
-    //     //         where: { id: userId, role: UserRolesEnum.KEEPER },
-    //     //         attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'deletedAt'] },
-    //     //         required: true,
-    //     //       },
-    //     //     ],
-    //     //   },
-    //     // ],
-    //   });
-    // }
-
-    // add in the request a condition to check if the user is admin using just the userRole captured before and
-
     const isAdmin = userRole === UserRolesEnum.ADMIN;
+    const include: IncludeOptions[] = [
+      {
+        association: 'stores',
+        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+        where: { ...(!isAdmin && { storeId }) },
+        include: [
+          {
+            association: 'store',
+            attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+          },
+        ],
+      },
+    ];
 
-    const product = await ProductServices.getOneProduct({ id }, undefined, isAdmin);
+    const product = await ProductServices.getOneProduct({ id }, include, isAdmin);
     if (!product) {
       return res.status(404).json({
         status: 'fail',

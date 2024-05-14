@@ -1,7 +1,7 @@
 import Store from '@database/models/store';
 import { GetAllRequestQuery } from '@src/types/sales.types';
 import { findQueryGenerators } from '@src/utils/generators';
-import { IncludeOptions, WhereOptions } from 'sequelize';
+import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 
 class StoreServices {
   static DEFAULT_USER_INCLUDES: IncludeOptions = {
@@ -31,7 +31,10 @@ class StoreServices {
   // get all stores
   static async getAllStores(queryData?: GetAllRequestQuery, where?: WhereOptions, include?: IncludeOptions[]) {
     const { count, rows } = await Store.findAndCountAll(
-      findQueryGenerators(Store.getAttributes(), queryData, { where, include })
+      findQueryGenerators(Store.getAttributes(), queryData, {
+        where: { name: { [Op.not]: 'expired' }, ...where },
+        include,
+      })
     );
 
     return { total: count, stores: rows };
@@ -39,7 +42,7 @@ class StoreServices {
 
   // get one store
   static async getOneStore(where: WhereOptions, include?: IncludeOptions[]) {
-    return await Store.findOne({ where, include });
+    return await Store.findOne({ where: { name: { [Op.not]: 'expired' }, ...where }, include });
   }
 
   // get store by id

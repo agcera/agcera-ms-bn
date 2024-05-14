@@ -16,7 +16,7 @@ class StoresController extends BaseController {
 
     const store = await StoreServices.getOneStore({ [Op.or]: [{ name }, { phone }] });
 
-    if (store?.name === name) {
+    if (store?.name === name || ['main', 'expired'].includes(name.toLowerCase())) {
       return res.status(400).json({
         status: 'fail',
         message: 'Store with this name already exists',
@@ -135,7 +135,7 @@ class StoresController extends BaseController {
     }
 
     // Stop the operation if we are trying to update the main store name
-    if (name && store.name === 'main' && (name || keepers)) {
+    if (name && ['main', 'expired'].includes(store.name.toLowerCase()) && (name || keepers)) {
       return res.status(403).json({
         status: 'fail',
         message: 'You cannot update the main store name or keepers',
@@ -223,10 +223,10 @@ class StoresController extends BaseController {
       });
     }
 
-    if (store.name === 'main') {
+    if (['main', 'expired'].includes(store.name.toLowerCase())) {
       return res.status(403).json({
         status: 'fail',
-        message: 'You cannot delete the main store',
+        message: "This store can't be deleted",
       });
     }
 
@@ -264,6 +264,7 @@ class StoresController extends BaseController {
         where: { storeId },
         required: true,
         attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+        include: [{ association: 'store', attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] } }],
       },
     ];
     const { products, total } = await ProductServices.getAllProducts(req.query, {}, includes);
