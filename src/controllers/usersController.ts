@@ -1,3 +1,4 @@
+import { UserRolesEnum } from './../types/user.types';
 import StoreServices from '@src/services/store.services';
 import { ExtendedRequest } from '@src/types/common.types';
 import bcrypt from 'bcrypt';
@@ -202,9 +203,9 @@ class UsersController extends BaseController {
   async getAllUsers(req: ExtendedRequest, res: Response): Promise<Response> {
     const user = req.user!;
 
-    const where: WhereOptions = {};
+    let where: WhereOptions = {};
     if (user.role === 'keeper') {
-      where['storeId'] = user.storeId;
+      where = { [Op.or]: [{ role: UserRolesEnum.USER }, { storeId: user.storeId }] };
     }
 
     const { users, total } = await userService.getAllUsers(req.query, where);
@@ -227,7 +228,11 @@ class UsersController extends BaseController {
         status: 'fail',
         message: 'You can only request your account',
       });
-    } else if (user.role === 'keeper' && user.storeId !== foundUser?.storeId) {
+    } else if (
+      user.role === 'keeper' &&
+      foundUser?.role !== UserRolesEnum.USER &&
+      user.storeId !== foundUser?.storeId
+    ) {
       return res.status(403).json({
         status: 'fail',
         message: 'You are not authorized to view this user account or user does not exist',
