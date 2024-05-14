@@ -33,7 +33,7 @@ class UsersController extends BaseController {
 
     // Check store exists
     const store = await StoreServices.getStoreById(storeId);
-    if (!store) {
+    if (!store || ['expired'].includes(store.name.toLocaleLowerCase())) {
       return res.status(400).json({
         status: 'fail',
         message: 'No Store found with the provided storeId.',
@@ -60,6 +60,11 @@ class UsersController extends BaseController {
           message: (error as UploadApiErrorResponse).message || 'Failed while uploading the user image',
         });
       }
+    } else {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'No image found; Please provide the user image',
+      });
     }
 
     // check create the user
@@ -75,11 +80,6 @@ class UsersController extends BaseController {
       role,
       image
     );
-
-    // generate token for the user
-    const token = generateToken({ id: newUser.id, role: newUser.role });
-    // store the token in the cookies
-    res.cookie('AuthToken', token, { httpOnly: true, secure: true, sameSite: 'none' });
 
     // return the new user
     return res.status(200).json({
@@ -289,11 +289,17 @@ class UsersController extends BaseController {
   }
 
   // update user profile
-  async updateUser(req: Request, res: Response): Promise<Response> {
+  async updateUser(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
-    const { name, email, phone, storeId } = req.body;
+    const { name, email, phone, storeId, location, gender } = req.body;
 
     const user = await userService.getUserById(id);
+    if (user?.role !== UserRolesEnum.USER && req.user!.role !== UserRolesEnum.ADMIN && user?.id !== req.user!.id) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'You can not edit the details of this user',
+      });
+    }
     if (!user) {
       return res.status(404).json({
         status: 'fail',
@@ -315,6 +321,13 @@ class UsersController extends BaseController {
         message: 'An admin can only be registered in the main store.',
       });
     }
+    if (store.id !== storeId && req.user!.role !== UserRolesEnum.ADMIN) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'You can not move yourself between store, please ask the admin.',
+      });
+    }
+
     // upload the new image
     let url: string | null = null;
     if (req.file) {
@@ -335,6 +348,8 @@ class UsersController extends BaseController {
     email ? (user.email = email) : null;
     phone ? (user.phone = phone) : null;
     storeId ? (user.storeId = storeId) : null;
+    location ? (user.location = location) : null;
+    gender ? (user.gender = gender) : null;
     url ? (user.image = url) : null;
 
     await user.save();
@@ -385,7 +400,7 @@ class UsersController extends BaseController {
         });
       }
     } else {
-      if (user.id !== id) {
+      if (user.role !== UserRolesEnum.ADMIN && user.id !== id) {
         return res.status(403).json({
           status: 403,
           message: 'You are only allowed to delete your account',

@@ -64,6 +64,8 @@ export const userUpdateSchema = joi
         'any.required': 'Phone number is a required field',
       }),
     storeId: joi.string(),
+    gender: joi.string().valid(...Object.values(UserGendersEnum)),
+    location: joi.string(),
   })
   .unknown();
 

@@ -1,4 +1,5 @@
 import allowToCreate from '@src/middlewares/allowToCreate';
+import upload from '@src/middlewares/multer';
 import { validate, validateParams } from '@src/middlewares/validation';
 import {
   emailSchema,
@@ -7,10 +8,9 @@ import {
   userRegisterSchema,
   userUpdateSchema,
 } from '@src/validation/user.validation';
-import upload from '@src/middlewares/multer';
 import { Router } from 'express';
 import UsersController from '../controllers/usersController';
-import { isAdmin, isLoggedIn, isStoreKeeperUp } from '../middlewares/checkAuth';
+import { isLoggedIn, isStoreKeeperUp } from '../middlewares/checkAuth';
 
 const router: Router = Router();
 const usersController = new UsersController();
@@ -27,7 +27,7 @@ router.get('/:id', isLoggedIn, validateParams(), usersController.getSingleUser);
 router.patch(
   '/:id',
   upload.single('image'),
-  isAdmin,
+  isLoggedIn,
   validateParams(),
   validate(userUpdateSchema),
   usersController.updateUser
