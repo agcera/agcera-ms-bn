@@ -258,15 +258,16 @@ class StoresController extends BaseController {
       });
     }
 
-    const includes: [IncludeOptions] = [
-      {
+    const includes: IncludeOptions[] = [];
+    if (user.role !== UserRolesEnum.USER) {
+      includes.push({
         association: 'stores',
         where: { storeId },
         required: true,
         attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
         include: [{ association: 'store', attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] } }],
-      },
-    ];
+      });
+    }
     const { products, total } = await ProductServices.getAllProducts(req.query, {}, includes);
 
     return res.status(200).json({
