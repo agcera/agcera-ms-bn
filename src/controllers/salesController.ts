@@ -8,6 +8,7 @@ import { IncludeOptions, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 import Variation from '@database/models/variation';
 import StoreProduct from '@database/models/storeproduct';
+import { recordDeleted } from '@src/services/deleted.services';
 
 class SalesController extends BaseController {
   async getAllSales(req: ExtendedRequest, res: Response): Promise<Response> {
@@ -190,14 +191,7 @@ class SalesController extends BaseController {
     const user = req.user!;
     const { id } = req.params;
 
-    // Check if the user is allowed to create a sale in the store
-    if (user.role === 'keeper' && user.storeId !== id) {
-      return res.status(403).json({
-        status: 403,
-        message: 'You are not allowed to delete this sale',
-      });
-    }
-
+    // even the admin is only allowed to delete the sales at the main store only
     const sale = await SaleServices.getOneSale({ id });
     if (!sale) {
       return res.status(404).json({
@@ -206,11 +200,41 @@ class SalesController extends BaseController {
       });
     }
 
+    if (user.storeId !== sale.storeId) {
+      return res.status(403).json({
+        status: 403,
+        message: 'You can only delete sales of your store',
+      });
+    }
+
+    // know the number of products in the sale get each independet product and record independents in the object
+    const productsNumbers: { [key: string]: number } = {};
+
+    sale.variations.forEach((variation) => {
+      const product = variation.variation.productId;
+      productsNumbers[product] = (productsNumbers[product] || 0) + variation.quantity! * variation.variation.number;
+    });
+
+    // restore the products in the store productstable
+    const productsIds = Object.keys(productsNumbers);
+    for (let i = 0; i < productsIds.length; i++) {
+      await StoreProduct.increment(
+        { quantity: productsNumbers[productsIds[i]] },
+        { where: { storeId: sale.storeId, productId: productsIds[i] } }
+      );
+    }
+
     await sale.destroy();
+
+    // record the deleted sale
+    await recordDeleted(req.user!.id, 'sale', sale);
 
     return res.status(200).json({
       status: 200,
-      message: 'Sale deleted successfully',
+      message: {
+        sale,
+        productsNumbers,
+      },
     });
   }
 }

@@ -8,6 +8,7 @@ import { UploadApiErrorResponse } from 'cloudinary';
 import { Request, Response } from 'express';
 import { IncludeOptions, Op } from 'sequelize';
 import { BaseController } from '.';
+import { recordDeleted } from '@src/services/deleted.services';
 
 export default class ProductsController extends BaseController {
   // get all products
@@ -177,7 +178,7 @@ export default class ProductsController extends BaseController {
   }
 
   // delete product
-  async deleteProduct(req: Request, res: Response): Promise<Response> {
+  async deleteProduct(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
 
     const product = await ProductServices.getProductByPk(id);
@@ -187,6 +188,10 @@ export default class ProductsController extends BaseController {
         message: 'Product not found',
       });
     }
+
+    // record the product in deleted table
+
+    await recordDeleted(req.user!.id, 'product', product);
 
     await product.destroy();
 
