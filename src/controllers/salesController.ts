@@ -8,6 +8,7 @@ import { IncludeOptions, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 import Variation from '@database/models/variation';
 import StoreProduct from '@database/models/storeproduct';
+import { recordDeleted } from '@src/services/deleted.services';
 
 class SalesController extends BaseController {
   async getAllSales(req: ExtendedRequest, res: Response): Promise<Response> {
@@ -224,6 +225,9 @@ class SalesController extends BaseController {
     }
 
     await sale.destroy();
+
+    // record the deleted sale
+    await recordDeleted(req.user!.id, 'sale', sale);
 
     return res.status(200).json({
       status: 200,

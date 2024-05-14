@@ -9,6 +9,7 @@ import { UserRolesEnum } from '@src/types/user.types';
 import User from '@database/models/user';
 import StoreProduct from '@database/models/storeproduct';
 import ProductsMovement from '@database/models/productsmovement';
+import { recordDeleted } from '@src/services/deleted.services';
 
 class StoresController extends BaseController {
   async createStore(req: Request, res: Response): Promise<Response> {
@@ -212,10 +213,16 @@ class StoresController extends BaseController {
   }
 
   // delete store
-  async deleteStore(req: Request, res: Response): Promise<Response> {
+  async deleteStore(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
 
-    const store = await StoreServices.getStoreById(id);
+    const include: IncludeOptions[] = [
+      {
+        association: 'products',
+      },
+    ];
+
+    const store = await StoreServices.getStoreById(id, include);
     if (!store) {
       return res.status(404).json({
         status: 'fail',
@@ -230,8 +237,25 @@ class StoresController extends BaseController {
       });
     }
 
+    // move all products from the store to be deleted to main store
+    // an object of product ids and their quantities from the store to be deleted
+    const productsWithIds = store?.products?.map((p) => ({ productId: p.productId, quantity: p.quantity }));
+
+    // increment the products of the main store for each product id in the productsWithIds
+
+    const mainStore = await StoreServices.getOneStore({ name: 'main' });
+
+    if (productsWithIds)
+      for (let i = 0; i < productsWithIds.length; i++) {
+        const { productId, quantity } = productsWithIds[i];
+        await StoreProduct.increment({ quantity }, { where: { storeId: mainStore!.id, productId } });
+      }
+
     // delete the store
     await store.destroy();
+
+    // record to the deleted table
+    await recordDeleted(req.user!.id, 'store', store);
 
     return res.status(200).json({
       status: 'success',
@@ -363,10 +387,6 @@ class StoresController extends BaseController {
       });
     }
 
-    // check if the requested quantiy exists in the source store. we will check this only when we are not moving products from main to main
-    // console.log('product.quantity => ', product.quantity)
-    // console.log('quantity => ', quantity)
-    // console.log('product.quantity < quantity => ', product.quantity < quantity)
     // console.log('product.quantity < 1 => ', product.quantity < 1)
 
     if (!mainMovement && (product.quantity < quantity || product.quantity - quantity < 1)) {
@@ -390,7 +410,6 @@ class StoresController extends BaseController {
 
     // decrement the products of the source store if we are not moving products from main to main
 
-    console.log('mainMovement => ', mainMovement);
     if (mainMovement) {
       return res.status(201).json({
         status: 201,

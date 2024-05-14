@@ -1,16 +1,20 @@
 import sequelize from '@database/connection';
 
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import User from './user';
 
-class Product extends Model<InferAttributes<Product>, InferCreationAttributes<Product>> {
+class Deleted extends Model<InferAttributes<Deleted>, InferCreationAttributes<Deleted>> {
   declare id: CreationOptional<string>;
   declare table: string;
   declare description: string;
+  declare userId: ForeignKey<User['id']>;
 
   declare readonly createdAt: CreationOptional<Date>;
+  declare updatedAt: Date | null;
+  declare deletedAt: Date | null;
 }
 
-Product.init(
+Deleted.init(
   {
     id: {
       unique: true,
@@ -29,18 +33,30 @@ Product.init(
       allowNull: false,
       defaultValue: '',
     },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id',
+      },
+    },
 
     createdAt: {
       allowNull: false,
       type: DataTypes.DATE,
       defaultValue: new Date(),
     },
+    updatedAt: DataTypes.DATE,
+    deletedAt: DataTypes.DATE,
   },
   {
     sequelize: sequelize,
-    modelName: 'Product',
-    tableName: 'Products',
+    modelName: 'Deleted',
+    tableName: 'Deleteds',
   }
 );
+Deleted.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Deleted, { foreignKey: 'userId' });
 
-export default Product;
+export default Deleted;

@@ -1,28 +1,47 @@
+
 'use strict';
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('deleteds', {
+    await queryInterface.createTable('Deleteds', {
       id: {
+        unique: true,
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
       },
-      name: {
-        type: Sequelize.STRING
+      description: {
+        allowNull: false,
+        type: Sequelize.TEXT,
       },
+      table: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
+      userId: {
+        allowNull: false,
+        type: Sequelize.UUID,
+        references: {
+          model: 'Users',
+          key: 'id',
+        },
+      },
+
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: new Date(),
       },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      }
+      updatedAt: Sequelize.DATE ,
+      deletedAt: Sequelize.DATE
+
     });
   },
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('deleteds');
-  }
+  async down(queryInterface) {
+    await queryInterface.dropTable('Deleteds');
+  },
 };
+
+
+
