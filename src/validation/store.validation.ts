@@ -55,7 +55,7 @@ export const addProductToStoreSchema = Joi.object({
         'string.empty': 'Store id should not be empty',
         'any.required': 'Store id is required',
       }),
-      Joi.string().valid('main')
+      Joi.string().valid('expired')
     )
     .required(),
   productId: Joi.string().required().messages({

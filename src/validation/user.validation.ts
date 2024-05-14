@@ -11,15 +11,11 @@ export const passwordSchema = joi.object({
 
 // The schema for registering a user
 export const userRegisterSchema = joi.object({
-  name: joi
-    .string()
-    .pattern(/^[a-zA-Z]+\s+[a-zA-Z]+/)
-    .required()
-    .messages({
-      'string.pattern.base': 'Provide at least two names',
-      'string.empty': 'Name cannot be empty',
-      'any.required': 'Name is a required field',
-    }),
+  name: joi.string().required().messages({
+    'string.pattern.base': 'Provide at least two names',
+    'string.empty': 'Name cannot be empty',
+    'any.required': 'Name is a required field',
+  }),
   password: joi.string().min(4).required(),
   email: joi.string().pattern(new RegExp('^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$')).messages({
     'string.pattern.base': 'Please provide a valid Email',
@@ -43,14 +39,11 @@ export const userRegisterSchema = joi.object({
 // make the same sehcma for updating a user but the fields are not required
 export const userUpdateSchema = joi
   .object({
-    name: joi
-      .string()
-      .pattern(/^[a-zA-Z]+\s+[a-zA-Z]+/)
-      .messages({
-        'string.pattern.base': 'Provide at least two names',
-        'string.empty': 'Name cannot be empty',
-        'any.required': 'Name is a required field',
-      }),
+    name: joi.string().messages({
+      'string.pattern.base': 'Provide at least two names',
+      'string.empty': 'Name cannot be empty',
+      'any.required': 'Name is a required field',
+    }),
     email: joi.string().pattern(new RegExp('^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$')).messages({
       'string.pattern.base': 'Please provide a valid Email',
       'string.empty': 'Email cannot be empty',

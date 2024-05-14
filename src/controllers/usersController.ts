@@ -16,7 +16,7 @@ class UsersController extends BaseController {
     const { name, email = null, phone, password, storeId, gender, location, role } = req.body;
 
     // Check if user already exists and was not deleted before
-    const user = await userService.getOneUser({ [Op.or]: [{ email }, { phone }] });
+    const user = await userService.getOneUser({ [Op.or]: [{ email }, { phone }], [Op.not]: { email: null } });
     if (user) {
       let message = '';
       if (user.email === email) {
@@ -294,10 +294,19 @@ class UsersController extends BaseController {
     const { name, email, phone, storeId, location, gender } = req.body;
 
     const user = await userService.getUserById(id);
-    if (user?.role !== UserRolesEnum.USER && req.user!.role !== UserRolesEnum.ADMIN && user?.id !== req.user!.id) {
+    if (
+      ([UserRolesEnum.USER].includes(req.user!.role) && user?.id !== req.user!.id) ||
+      req.user!.role === UserRolesEnum.KEEPER
+    ) {
       return res.status(400).json({
         status: 'fail',
         message: 'You can not edit the details of this user',
+      });
+    }
+    if (req.user!.role !== UserRolesEnum.ADMIN && storeId && user?.storeId !== storeId) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Only the admin can move users between stores.',
       });
     }
     if (!user) {
@@ -307,24 +316,34 @@ class UsersController extends BaseController {
       });
     }
 
+    // Check if email or phone are already taken
+    const duplicateUser = await userService.getOneUser({ [Op.or]: [{ email }, { phone }], [Op.not]: { id } });
+    if (duplicateUser) {
+      let message = '';
+      if (duplicateUser.email === email) {
+        message = 'Another user with this email already exists.';
+      } else if (duplicateUser.phone === phone) {
+        message = 'Another user with this phone number already exists.';
+      }
+
+      return res.status(400).json({
+        status: 'fail',
+        message,
+      });
+    }
+
     // Check store exists
     const store = await StoreServices.getStoreById(storeId);
-    if (!store) {
+    if (storeId && (!store || store.name === 'expired')) {
       return res.status(400).json({
         status: 'fail',
         message: 'No Store found with the provided storeId.',
       });
     }
-    if (user.role === 'admin' && store.name !== 'main') {
+    if (user.role === 'admin' && storeId && store?.name !== 'main') {
       return res.status(400).json({
         status: 'fail',
         message: 'An admin can only be registered in the main store.',
-      });
-    }
-    if (store.id !== storeId && req.user!.role !== UserRolesEnum.ADMIN) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'You can not move yourself between store, please ask the admin.',
       });
     }
 
