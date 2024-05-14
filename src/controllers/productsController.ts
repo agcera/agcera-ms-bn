@@ -190,6 +190,11 @@ export default class ProductsController extends BaseController {
 
     await product.destroy();
 
+    // delete the image from cloudinary
+    handleDeleteUpload(product.image).catch((error) => {
+      console.error('Failed to delete the old image', error);
+    });
+
     return res.status(201).json({
       status: 'success',
       data: 'Product deleted successfully',

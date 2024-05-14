@@ -25,6 +25,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare email: string | null;
   declare gender: string | null;
   declare isActive: boolean | null;
+  declare image: CreationOptional<string>;
 
   declare storeId?: CreationOptional<ForeignKey<Store['id'] | null>>;
 
@@ -94,6 +95,11 @@ User.init(
         model: 'Stores',
         key: 'id',
       },
+    },
+    image: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'https://via.placeholder.com/150?text=No%20User%20Image',
     },
     isActive: {
       type: DataTypes.BOOLEAN,

@@ -35,10 +35,7 @@ export const userRegisterSchema = joi.object({
       'any.required': 'Phone number is a required field',
     }),
   storeId: joi.string().required(),
-  role: joi
-    .string()
-    .valid(...Object.values(UserRolesEnum))
-    .required(),
+  role: joi.string().valid(...Object.values(UserRolesEnum)),
   gender: joi.string().valid(...Object.values(UserGendersEnum)),
   location: joi.string(),
 });

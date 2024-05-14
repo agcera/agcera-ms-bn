@@ -60,6 +60,11 @@ class StoreServices {
 
     store.name = data.name;
   }
+
+  // get all stores by and exclude all relations to return only name and location
+  static async getAllStoresNameAndLocation() {
+    return await Store.findAll({ attributes: ['name', 'location'] });
+  }
 }
 
 export default StoreServices;

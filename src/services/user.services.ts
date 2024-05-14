@@ -20,7 +20,8 @@ class UserService {
     gender: string,
     location: string,
     storeId: string,
-    role: UserRolesEnum
+    role: UserRolesEnum,
+    image: string
   ) {
     // remove the password and return the new user
     const newUser: Omit<User, 'password'> = await User.create(
@@ -33,6 +34,7 @@ class UserService {
         location,
         storeId,
         role,
+        image,
       },
       { include: [this.DEFAULT_STORE_INCLUDE] }
     );
@@ -100,6 +102,7 @@ class UserService {
           | 'location'
           | 'role'
           | 'email'
+          | 'image'
           | 'gender'
           | 'isActive'
           | 'storeId'

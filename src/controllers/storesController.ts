@@ -390,6 +390,16 @@ class StoresController extends BaseController {
       data: addProducts,
     });
   }
+
+  // get all stores name and location
+  async getAllStoresNamesAndLocations(Req: ExtendedRequest, res: Response): Promise<Response> {
+    const stores = await StoreServices.getAllStoresNameAndLocation();
+
+    return res.status(200).json({
+      status: 200,
+      data: stores,
+    });
+  }
 }
 
 export default StoresController;
