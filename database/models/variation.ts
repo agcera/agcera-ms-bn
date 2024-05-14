@@ -7,6 +7,7 @@ import {
   InferCreationAttributes,
   Model,
   ModelValidateOptions,
+  NonAttribute,
 } from 'sequelize';
 import Product from './product';
 
@@ -18,6 +19,7 @@ class Variation extends Model<InferAttributes<Variation>, InferCreationAttribute
   declare number: number;
 
   declare productId: ForeignKey<Product['id']>;
+  declare product: NonAttribute<Product>;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | null;
