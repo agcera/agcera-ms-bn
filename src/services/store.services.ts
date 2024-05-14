@@ -63,7 +63,7 @@ class StoreServices {
 
   // get all stores by and exclude all relations to return only name and location
   static async getAllStoresNameAndLocation() {
-    return await Store.findAll({ attributes: ['name', 'location'] });
+    return await Store.findAll({ where: { name: { [Op.not]: 'expired' } }, attributes: ['id', 'name', 'location'] });
   }
 }
 
