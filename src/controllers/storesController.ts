@@ -310,7 +310,16 @@ class StoresController extends BaseController {
     // check if the stores we want to take froma nd to exist
 
     // check from and bring it with products association
-    const include: IncludeOptions[] = [{ association: 'products' }];
+    const include: IncludeOptions[] = [
+      {
+        association: 'products',
+        include: [
+          {
+            association: 'product',
+          },
+        ],
+      },
+    ];
 
     let fromStore = null;
     let toStore = null;
@@ -342,6 +351,8 @@ class StoresController extends BaseController {
       });
     }
 
+    const mainMovement = fromStore?.name === 'main' && toStore?.name === 'main';
+
     // check if the product exists in the source store and check if the quantity is available
     const product = fromStore?.products?.find((p) => p.productId === productId);
 
@@ -353,27 +364,42 @@ class StoresController extends BaseController {
     }
 
     // check if the requested quantiy exists in the source store. we will check this only when we are not moving products from main to main
-    if (fromStore?.name !== 'main' && toStore?.name !== 'main' && product.quantity < quantity) {
+    // console.log('product.quantity => ', product.quantity)
+    // console.log('quantity => ', quantity)
+    // console.log('product.quantity < quantity => ', product.quantity < quantity)
+    // console.log('product.quantity < 1 => ', product.quantity < 1)
+
+    if (!mainMovement && (product.quantity < quantity || product.quantity - quantity < 1)) {
+      console.log(product);
       return res.status(400).json({
         status: 400,
-        message: `The quantity of Product ${product} not available in the source store ${fromStore.name}`,
+        message: `The quantity of Product ${product.product.name} not available in the source store ${fromStore.name}`,
       });
     }
 
     // increment the products of the destinatin store
+
     const addProducts = await StoreProduct.increment({ quantity }, { where: { storeId: toStore?.id, productId } });
 
     if (!addProducts) {
       return res.status(400).json({
         status: 400,
-        message: `Product not added to store ${toStore?.name}`,
+        message: `Product ${product.product.name} not added to store ${toStore?.name}`,
       });
     }
 
     // decrement the products of the source store if we are not moving products from main to main
-    if (fromStore?.name !== 'main' && toStore?.name !== 'main') {
-      await StoreProduct.increment({ quantity: -quantity }, { where: { storeId: fromStore?.id, productId } });
+
+    console.log('mainMovement => ', mainMovement);
+    if (mainMovement) {
+      return res.status(201).json({
+        status: 201,
+        message: `Product added to store ${toStore?.name} from ${fromStore?.name} successfully`,
+        data: addProducts,
+      });
     }
+
+    await StoreProduct.increment({ quantity: -quantity }, { where: { storeId: fromStore?.id, productId } });
 
     // record the movement in the products movement table
     await ProductsMovement.create({

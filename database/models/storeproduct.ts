@@ -1,5 +1,13 @@
 import sequelize from '@database/connection';
-import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import {
+  CreationOptional,
+  DataTypes,
+  ForeignKey,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+  NonAttribute,
+} from 'sequelize';
 import Product from './product';
 import Store from './store';
 
@@ -9,6 +17,7 @@ class StoreProduct extends Model<InferAttributes<StoreProduct>, InferCreationAtt
 
   declare storeId: ForeignKey<Store['id']>;
   declare productId: ForeignKey<Product['id']>;
+  declare product: NonAttribute<Product>;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | null;
@@ -64,7 +73,7 @@ StoreProduct.init(
 
 StoreProduct.belongsTo(Product, {
   foreignKey: 'productId',
-  as: 'products',
+  as: 'product',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
