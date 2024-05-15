@@ -15,7 +15,6 @@ import Store from '@database/models/store';
 class AnalyticsController extends BaseController {
   async getAnalytics(req: ExtendedRequest<any, any, any, any>, res: Response): Promise<Response> {
     const user = req.user!;
-    console.log(user);
 
     const { error, value } = reportSchema.validate(req.query);
 
