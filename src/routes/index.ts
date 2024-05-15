@@ -7,6 +7,7 @@ import { validateQueries } from '@src/middlewares/validation';
 import generateReport from './report';
 import transactionRoutes from './transactionRoutes';
 import deletedRoutes from './deletetedRoutes';
+import analyticsRoutes from './analyticsRoutes';
 
 const router = Router();
 
@@ -20,6 +21,7 @@ router.use('/sales', salesRoutes);
 router.use('/report', generateReport);
 router.use('/transactions', transactionRoutes);
 router.use('/deleted', deletedRoutes);
+router.use('/analytics', analyticsRoutes);
 
 router.post('/error', () => {
   throw new Error('This is an error');
