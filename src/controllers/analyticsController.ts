@@ -63,10 +63,11 @@ class AnalyticsController extends BaseController {
 
     const salesByDate = sales.reduce(
       (acc, sale) => {
-        const date = sale.createdAt.toISOString().split('T')[0];
-        acc[date] =
-          (acc[date] || 0) +
-          sale.variations.reduce((acc, variation) => acc + variation.quantity! * variation.variation.sellingPrice, 0);
+        const date = sale.createdAt.toISOString();
+        acc[date] = sale.variations.reduce(
+          (acc, variation) => acc + variation.quantity! * variation.variation.sellingPrice,
+          0
+        );
         return acc;
       },
       {} as { [key: string]: number }
