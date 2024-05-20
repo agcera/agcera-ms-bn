@@ -56,7 +56,19 @@ Deleted.init(
     tableName: 'Deleteds',
   }
 );
-Deleted.belongsTo(User, { foreignKey: 'userId' });
-User.hasMany(Deleted, { foreignKey: 'userId' });
+Deleted.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user',
+});
+
+User.hasMany(Deleted, {
+  foreignKey: 'userId',
+  as: 'deleteds',
+});
+
+// Variation.belongsTo(Product, {
+//   foreignKey: 'productId',
+//   as: 'product',
+// });
 
 export default Deleted;

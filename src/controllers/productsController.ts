@@ -203,6 +203,7 @@ export default class ProductsController extends BaseController {
     return res.status(201).json({
       status: 'success',
       data: 'Product deleted successfully',
+      product,
     });
   }
 

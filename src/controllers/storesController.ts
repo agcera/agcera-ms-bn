@@ -216,13 +216,13 @@ class StoresController extends BaseController {
   async deleteStore(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
 
-    const include: IncludeOptions[] = [
-      {
-        association: 'products',
-      },
-    ];
+    // const include: IncludeOptions[] = [
+    //   {
+    //     association: 'products',
+    //   },
+    // ];
 
-    const store = await StoreServices.getStoreById(id, include);
+    const store = await StoreServices.getStoreById(id);
     if (!store) {
       return res.status(404).json({
         status: 'fail',
@@ -260,6 +260,7 @@ class StoresController extends BaseController {
     return res.status(200).json({
       status: 'success',
       message: 'Store deleted successfully',
+      store,
     });
   }
 

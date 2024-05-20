@@ -3,10 +3,11 @@ import { ExtendedRequest } from '@src/types/common.types';
 import { Response } from 'express';
 import { IncludeOptions, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
+import Deleted from '@database/models/deleted';
 
 class DeletedController extends BaseController {
   async getAllDeleted(req: ExtendedRequest, res: Response) {
-    const { role: userRole, storeId } = req.user!;
+    const { role: userRole } = req.user!;
 
     const { search, limit, skip, sort } = req.query;
 
@@ -14,14 +15,14 @@ class DeletedController extends BaseController {
     const include: IncludeOptions[] = [];
 
     switch (userRole) {
-      case 'keeper':
-        WhereOptions['storeId'] = storeId;
+      case 'keeper' || 'user':
+        WhereOptions['userId'] = req.user!.id;
         break;
       case 'admin':
         break;
     }
 
-    const { total, Deleted: deletedItems } = await DeletedServices.getAllDeleted(
+    const { Deleted: deletedItems } = await DeletedServices.getAllDeleted(
       { search, limit, skip, sort },
       WhereOptions,
       include
@@ -31,8 +32,53 @@ class DeletedController extends BaseController {
       status: 200,
       data: {
         deletedItems,
-        total,
       },
+    });
+  }
+
+  async getDeletedItemById(req: ExtendedRequest, res: Response) {
+    const { id } = req.params;
+    const { role: userRole, id: userId } = req.user!;
+
+    const deletedItem = await Deleted.findByPk(id);
+
+    // if the user is not admin, he should only view stuffs related to his user id
+    if (!deletedItem) {
+      return res.status(404).json({
+        status: 404,
+        error: 'Deleted item not found',
+      });
+    }
+
+    if (userRole !== 'admin' && deletedItem.userId !== userId) {
+      return res.status(403).json({
+        status: 403,
+        error: 'You are not authorized to view this item',
+      });
+    }
+
+    return res.status(200).json({
+      status: 200,
+      data: {
+        deletedItem,
+      },
+    });
+  }
+
+  async clearDeteteds(req: ExtendedRequest, res: Response) {
+    // delete all deleted items
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({
+        status: 403,
+        error: 'You are not authorized to perform this action',
+      });
+    }
+
+    await Deleted.destroy({ where: {} });
+
+    return res.status(200).json({
+      status: 200,
+      message: 'All deleted items have been cleared',
     });
   }
 }
