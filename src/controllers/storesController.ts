@@ -387,10 +387,7 @@ class StoresController extends BaseController {
       });
     }
 
-    // console.log('product.quantity < 1 => ', product.quantity < 1)
-
     if (!mainMovement && (product.quantity < quantity || product.quantity - quantity < 1)) {
-      console.log(product);
       return res.status(400).json({
         status: 400,
         message: `The quantity of Product ${product.product.name} not available in the source store ${fromStore.name}`,

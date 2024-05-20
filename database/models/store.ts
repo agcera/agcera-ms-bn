@@ -65,7 +65,7 @@ Store.init(
     createdAt: {
       allowNull: false,
       type: DataTypes.DATE,
-      defaultValue: new Date(),
+      defaultValue: DataTypes.NOW,
     },
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
@@ -74,7 +74,6 @@ Store.init(
     sequelize: sequelize,
     modelName: 'Store',
     tableName: 'Stores',
-    paranoid: true,
   }
 );
 

@@ -29,8 +29,6 @@ class GenerateReportController extends BaseController {
     const to = generateLastDate(new Date(unformattedTo));
     const storeId = user.role === UserRolesEnum.KEEPER ? user.storeId : queryStoreId;
 
-    console.log(from, to);
-
     let store = null;
     if (storeId) {
       store = await StoreServices.getStoreById(storeId);

@@ -68,7 +68,7 @@ Product.init(
     createdAt: {
       allowNull: false,
       type: DataTypes.DATE,
-      defaultValue: new Date(),
+      defaultValue: DataTypes.NOW,
     },
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,

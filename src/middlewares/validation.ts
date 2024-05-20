@@ -32,8 +32,6 @@ export class ValidationMiddleware extends BaseMiddleware {
   validateProductExist = async (req: Request, res: Response, next: NextFunction) => {
     const { productId } = req.params;
 
-    console.log('productId => ', productId);
-
     const product = await ProductServices.getProductByPk(productId);
     if (!product) {
       return res.status(404).json({
