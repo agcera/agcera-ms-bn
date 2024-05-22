@@ -1,13 +1,13 @@
 import sequelize from '@database/connection';
 
-import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import User from './user';
 
 class Deleted extends Model<InferAttributes<Deleted>, InferCreationAttributes<Deleted>> {
   declare id: CreationOptional<string>;
   declare table: string;
   declare description: string;
-  declare userId: ForeignKey<User['id']>;
+  declare deletedBy: string;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | null;
@@ -33,13 +33,8 @@ Deleted.init(
       allowNull: false,
       defaultValue: '',
     },
-    userId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: 'Users',
-        key: 'id',
-      },
+    deletedBy: {
+      type: DataTypes.STRING,
     },
 
     createdAt: {

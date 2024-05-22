@@ -1,7 +1,7 @@
 import DeletedServices from '@src/services/deleted.services';
 import { ExtendedRequest } from '@src/types/common.types';
 import { Response } from 'express';
-import { IncludeOptions, WhereOptions } from 'sequelize';
+import { WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 import Deleted from '@database/models/deleted';
 
@@ -12,7 +12,6 @@ class DeletedController extends BaseController {
     const { search, limit, skip, sort } = req.query;
 
     const WhereOptions: WhereOptions = {};
-    const include: IncludeOptions[] = [];
 
     switch (userRole) {
       case 'keeper' || 'user':
@@ -22,11 +21,9 @@ class DeletedController extends BaseController {
         break;
     }
 
-    const { Deleted: deletedItems } = await DeletedServices.getAllDeleted(
-      { search, limit, skip, sort },
-      WhereOptions,
-      include
-    );
+    const { Deleted: deletedItems } = await DeletedServices.getAllDeleted({ search, limit, skip, sort }, WhereOptions);
+
+    console.log(deletedItems[0]);
 
     return res.status(200).json({
       status: 200,
@@ -38,7 +35,7 @@ class DeletedController extends BaseController {
 
   async getDeletedItemById(req: ExtendedRequest, res: Response) {
     const { id } = req.params;
-    const { role: userRole, id: userId } = req.user!;
+    const { role: userRole } = req.user!;
 
     const deletedItem = await Deleted.findByPk(id);
 
@@ -50,7 +47,7 @@ class DeletedController extends BaseController {
       });
     }
 
-    if (userRole !== 'admin' && deletedItem.userId !== userId) {
+    if (userRole !== 'admin') {
       return res.status(403).json({
         status: 403,
         error: 'You are not authorized to view this item',

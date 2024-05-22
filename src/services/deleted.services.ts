@@ -14,7 +14,6 @@ class DeletedServices {
     include.push({
       association: 'user',
       attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt, password'] },
-      required: true,
     });
     const deleted = await Deleted.findAll({ where, include });
 
@@ -24,8 +23,12 @@ class DeletedServices {
 
 export default DeletedServices;
 
-export const recordDeleted = async (userId: string, table: string, description: Model) => {
+export const recordDeleted = async (deletedBy: { name: string; phone: string }, table: string, description: Model) => {
   console.log(description);
 
-  await Deleted.create({ userId, description: JSON.stringify(`{${description.dataValues}}`), table });
+  await Deleted.create({
+    deletedBy: JSON.stringify(deletedBy),
+    description: `{ "${table}" : ${JSON.stringify(description.dataValues)}}`,
+    table,
+  });
 };

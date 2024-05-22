@@ -18,6 +18,8 @@ module.exports = {
       productId: {
         allowNull:false,
         type: Sequelize.UUID,
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
         references: {
           model: 'Products',
           key: 'id'

@@ -17,7 +17,7 @@ module.exports = {
         defaultValue: 'MOMO',
       },
       clientId: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
       },
       clientType: {

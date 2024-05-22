@@ -9,10 +9,6 @@ export default class ProductServices {
     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt', 'costPrice'] },
   };
 
-  // variation include when user is admin
-  // variaon inli user
-  // includde when keeper
-
   // the include when the user is a keeper with variations
   static VARIATION_INCLUDE_FOR_ADMIN: IncludeOptions = {
     association: 'variations',
@@ -24,6 +20,7 @@ export default class ProductServices {
     attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
     include: [{ association: 'store', attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] } }],
   };
+
   static DEFAULT_INCLUDES: IncludeOptions[] = [this.DEFAULT_VARIATION_INCLUDE];
 
   // get all products
@@ -46,9 +43,9 @@ export default class ProductServices {
   }
 
   // get one product by id
-  static async getProductByPk(id: string) {
+  static async getProductByPk(id: string, includes?: IncludeOptions[]) {
     return await Product.findByPk(id, {
-      include: this.DEFAULT_INCLUDES,
+      include: [...this.DEFAULT_INCLUDES, ...(includes || [])],
     });
   }
 

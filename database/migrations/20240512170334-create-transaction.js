@@ -24,8 +24,9 @@ module.exports = {
         type: Sequelize.ENUM('INCOME', 'EXPENSE')
       },
       userId: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.UUID,
+        onDelete: 'SET NULL',
         references: {
           model: 'Users',
           key: 'id',

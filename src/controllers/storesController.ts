@@ -9,7 +9,7 @@ import { UserRolesEnum } from '@src/types/user.types';
 import User from '@database/models/user';
 import StoreProduct from '@database/models/storeproduct';
 import ProductsMovement from '@database/models/productsmovement';
-import { recordDeleted } from '@src/services/deleted.services';
+// import { recordDeleted } from '@src/services/deleted.services';
 
 class StoresController extends BaseController {
   async createStore(req: Request, res: Response): Promise<Response> {
@@ -215,6 +215,7 @@ class StoresController extends BaseController {
   // delete store
   async deleteStore(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
+    // const user = req.user!;
 
     // const include: IncludeOptions[] = [
     //   {
@@ -242,7 +243,6 @@ class StoresController extends BaseController {
     const productsWithIds = store?.products?.map((p) => ({ productId: p.productId, quantity: p.quantity }));
 
     // increment the products of the main store for each product id in the productsWithIds
-
     const mainStore = await StoreServices.getOneStore({ name: 'main' });
 
     if (productsWithIds)
@@ -251,11 +251,14 @@ class StoresController extends BaseController {
         await StoreProduct.increment({ quantity }, { where: { storeId: mainStore!.id, productId } });
       }
 
+    // move all users to the main store
+    await UserService.bulkUpdateUsers({ storeId: id }, { storeId: mainStore!.id });
+
     // delete the store
     await store.destroy();
 
     // record to the deleted table
-    await recordDeleted(req.user!.id, 'store', store);
+    // await recordDeleted({name: user.name, phone: user.phone}, 'store', store);
 
     return res.status(200).json({
       status: 'success',
@@ -334,6 +337,15 @@ class StoresController extends BaseController {
 
     // check if the stores we want to take froma nd to exist
 
+    // check if the product exist
+    const productExist = await ProductServices.getProductByPk(productId);
+    if (!productExist) {
+      return res.status(404).json({
+        status: 404,
+        message: `Product with id ${productId} not found`,
+      });
+    }
+
     // check from and bring it with products association
     const include: IncludeOptions[] = [
       {
@@ -364,9 +376,9 @@ class StoresController extends BaseController {
 
     // check for the to store
     if (to !== 'expired') {
-      toStore = await StoreServices.getOneStore({ id: to }, include);
+      toStore = await StoreServices.getOneStoreWithExpired({ id: to }, include);
     } else {
-      toStore = await StoreServices.getOneStore({ name: to }, include);
+      toStore = await StoreServices.getOneStoreWithExpired({ name: to }, include);
     }
 
     if (!toStore) {
@@ -381,42 +393,42 @@ class StoresController extends BaseController {
     // check if the product exists in the source store and check if the quantity is available
     const product = fromStore?.products?.find((p) => p.productId === productId);
 
-    if (!product) {
+    if (!mainMovement && !product) {
       return res.status(404).json({
         status: 404,
         message: `Product not found in the source store ${fromStore.name}`,
       });
     }
 
-    if (!mainMovement && (product.quantity < quantity || product.quantity - quantity < 1)) {
+    if (!mainMovement && product!.quantity - quantity < 0) {
       return res.status(400).json({
         status: 400,
-        message: `The quantity of Product ${product.product.name} not available in the source store ${fromStore.name}`,
+        message: `The quantity of Product ${product!.product.name} not available in the source store ${fromStore.name}`,
       });
     }
 
     // increment the products of the destinatin store
-
     const addProducts = await StoreProduct.increment({ quantity }, { where: { storeId: toStore?.id, productId } });
 
-    if (!addProducts) {
-      return res.status(400).json({
-        status: 400,
-        message: `Product ${product.product.name} not added to store ${toStore?.name}`,
-      });
+    if (!addProducts[0][1]) {
+      // create relation of store products
+      await StoreProduct.create({ storeId: toStore?.id, productId, quantity });
     }
 
     // decrement the products of the source store if we are not moving products from main to main
-
     if (mainMovement) {
       return res.status(201).json({
         status: 201,
-        message: `Product added to store ${toStore?.name} from ${fromStore?.name} successfully`,
+        message: `Product added to ${toStore?.name} from ${fromStore?.name} successfully`,
         data: addProducts,
       });
     }
 
-    await StoreProduct.increment({ quantity: -quantity }, { where: { storeId: fromStore?.id, productId } });
+    if (product!.quantity - quantity === 0) {
+      await StoreProduct.destroy({ where: { storeId: fromStore?.id, productId } });
+    } else {
+      await StoreProduct.increment({ quantity: -quantity }, { where: { storeId: fromStore?.id, productId } });
+    }
 
     // record the movement in the products movement table
     await ProductsMovement.create({

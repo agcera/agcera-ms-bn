@@ -68,9 +68,8 @@ class UserService {
     return user;
   }
 
-  static async getOneUser(where: WhereOptions, deleted: boolean = false) {
+  static async getOneUser(where: WhereOptions) {
     return await User.findOne({
-      paranoid: deleted,
       where: { ...where },
       attributes: { exclude: ['password'] },
       include: [this.DEFAULT_STORE_INCLUDE],

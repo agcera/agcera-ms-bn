@@ -75,7 +75,6 @@ ProductsMovement.init(
     sequelize,
     modelName: 'productsMovement',
     tableName: 'ProductsMovements',
-    paranoid: true,
   }
 );
 
