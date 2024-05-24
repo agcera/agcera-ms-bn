@@ -8,7 +8,8 @@ import { UploadApiErrorResponse } from 'cloudinary';
 import { Request, Response } from 'express';
 import { IncludeOptions, Op } from 'sequelize';
 import { BaseController } from '.';
-import { recordDeleted } from '@src/services/deleted.services';
+// import Product from '@database/models/product';
+// import { recordDeleted } from '@src/services/deleted.services';
 
 export default class ProductsController extends BaseController {
   // get all products
@@ -35,11 +36,12 @@ export default class ProductsController extends BaseController {
     const { id } = req.params;
 
     const isAdmin = userRole === UserRolesEnum.ADMIN;
+
     const include: IncludeOptions[] = [
       {
         association: 'stores',
         attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
-        where: { ...(!isAdmin && { storeId }) },
+        ...(!isAdmin && { where: { storeId } }),
         include: [
           {
             association: 'store',
@@ -50,6 +52,8 @@ export default class ProductsController extends BaseController {
     ];
 
     const product = await ProductServices.getOneProduct({ id }, include, isAdmin);
+    // const product = await Product.findByPk(id)
+    console.log(product);
     if (!product) {
       return res.status(404).json({
         status: 'fail',
@@ -180,18 +184,51 @@ export default class ProductsController extends BaseController {
   // delete product
   async deleteProduct(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
+    // const user = req.user!;
 
-    const product = await ProductServices.getProductByPk(id);
+    const product = await ProductServices.getProductByPk(id, [
+      {
+        association: 'stores',
+        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+        include: [
+          {
+            association: 'store',
+            where: { name: { [Op.not]: 'expired' } },
+            attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+          },
+        ],
+      },
+      {
+        association: 'variations',
+        include: [{ association: 'sales', required: true }],
+      },
+    ]);
+
     if (!product) {
       return res.status(404).json({
         status: 'fail',
         message: 'Product not found',
       });
     }
+    // check if the product has sales or if it is in store products
+
+    if (product.variations?.length) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Product can no longer be deleted because it has already been used in sales.',
+      });
+    }
+
+    // if the product is in store products, it cannot be deleted
+    if (product.stores?.length) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Product cannot be deleted because it is in some stores. Remove it from all stores to continue',
+      });
+    }
 
     // record the product in deleted table
-
-    await recordDeleted(req.user!.id, 'product', product);
+    // await recordDeleted({name: user.name, phone: user.phone}, 'product', product);
 
     await product.destroy();
 
@@ -203,6 +240,7 @@ export default class ProductsController extends BaseController {
     return res.status(201).json({
       status: 'success',
       data: 'Product deleted successfully',
+      product,
     });
   }
 

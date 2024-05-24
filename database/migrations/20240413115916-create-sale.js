@@ -17,7 +17,7 @@ module.exports = {
         defaultValue: 'MOMO',
       },
       clientId: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
       },
       clientType: {
@@ -26,8 +26,10 @@ module.exports = {
         defaultValue: 'USER',
       },
       storeId: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.UUID,
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
         references: {
           model: 'Stores',
           key: 'id',

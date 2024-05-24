@@ -16,12 +16,12 @@ class Transaction extends Model<InferAttributes<Transaction>, InferCreationAttri
   declare readonly id: CreationOptional<string>;
   declare amount: number;
   declare description: string;
-  declare userId: ForeignKey<User['id']>;
+  declare userId: ForeignKey<User['id'] | null> | null;
   declare storeId: ForeignKey<Store['id']>;
   declare type: TransactionTypesEnum;
 
   declare store: NonAttribute<Store>;
-  declare user: NonAttribute<User>;
+  declare user: NonAttribute<User | null> | null;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | undefined;
@@ -54,7 +54,7 @@ Transaction.init(
       },
     },
     userId: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.UUID,
       references: {
         model: 'Users',
@@ -78,7 +78,6 @@ Transaction.init(
     sequelize,
     modelName: 'Transaction',
     tableName: 'Transactions',
-    paranoid: true,
   }
 );
 
@@ -87,8 +86,9 @@ Transaction.belongsTo(User, {
   as: 'user',
 });
 User.hasMany(Transaction, {
-  foreignKey: 'userId',
+  foreignKey: { name: 'userId', allowNull: false },
   as: 'transactions',
+  onDelete: 'CASCADE',
 });
 
 Transaction.belongsTo(Store, {

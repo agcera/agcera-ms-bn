@@ -10,6 +10,8 @@ import { BaseController } from '.';
 import userService from '../services/user.services';
 import { /* defaultTokenExpirySeconds,*/ generateToken, verifyToken } from '../utils/jwtFunctions';
 import sendEmail from '../utils/sendEmail';
+// import { recordDeleted } from '@src/services/deleted.services';
+import SaleServices from '@src/services/sale.services';
 
 class UsersController extends BaseController {
   async register(req: Request, res: Response): Promise<Response> {
@@ -393,7 +395,7 @@ class UsersController extends BaseController {
     const user = req.user!;
     const { id } = req.params;
 
-    const foundUser = await userService.getUserById(id);
+    const foundUser = await userService.getOneUser({ id });
     if (!foundUser) {
       return res.status(404).json({
         status: 'fail',
@@ -427,10 +429,14 @@ class UsersController extends BaseController {
       }
     }
 
+    // find all sales which contain the clientId of useId and update them to null
+    await SaleServices.bulkUpdateSale({ clientId: foundUser.id }, { clientId: null });
+
     // delete the user
     await foundUser.destroy();
 
-    // delete the user from cloudinary
+    // record in the deleted users
+    // await recordDeleted({name: user.name, phone: user.phone}, 'user', foundUser);
 
     // No need to bother catching the error as the image is already updated
     handleDeleteUpload(foundUser.image).catch((error) => {
@@ -440,6 +446,7 @@ class UsersController extends BaseController {
     return res.status(200).json({
       status: 'success',
       message: 'User deleted successfully',
+      user: foundUser,
     });
   }
 }

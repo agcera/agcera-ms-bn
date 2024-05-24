@@ -9,8 +9,8 @@ class ProductsMovement extends Model<InferAttributes<ProductsMovement>, InferCre
   declare quantity: number;
   declare productId: ForeignKey<Product['id']>;
   declare userId: ForeignKey<User['id']>;
-  declare from: ForeignKey<Store['id']>;
-  declare to: ForeignKey<Store['id']>;
+  declare from: ForeignKey<Store['id']> | null;
+  declare to: ForeignKey<Store['id']> | null;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | undefined;
@@ -47,7 +47,7 @@ ProductsMovement.init(
       },
     },
     from: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.UUID,
       references: {
         model: 'Stores',
@@ -55,7 +55,7 @@ ProductsMovement.init(
       },
     },
     to: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.UUID,
       references: {
         model: 'Stores',
@@ -75,7 +75,6 @@ ProductsMovement.init(
     sequelize,
     modelName: 'productsMovement',
     tableName: 'ProductsMovements',
-    paranoid: true,
   }
 );
 
@@ -85,11 +84,10 @@ ProductsMovement.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 User.hasMany(ProductsMovement, { foreignKey: 'userId', as: 'productMovements' });
 ProductsMovement.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
-Store.hasMany(ProductsMovement, { foreignKey: 'from', as: 'fromProductMovements' });
-
+Store.hasMany(ProductsMovement, { foreignKey: 'from', as: 'fromThis' });
 ProductsMovement.belongsTo(Store, { foreignKey: 'from', as: 'storeFrom' });
 
-Store.hasMany(ProductsMovement, { foreignKey: 'to', as: 'toProductMovements' });
+Store.hasMany(ProductsMovement, { foreignKey: 'to', as: 'toThis' });
 ProductsMovement.belongsTo(Store, { foreignKey: 'to', as: 'storeTo' });
 
 export default ProductsMovement;

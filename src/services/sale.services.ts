@@ -65,6 +65,11 @@ class SaleServices {
     // Reload the sale with the products
     return await sale.reload({ include: this.DEFAULT_PRODUCT_INCLUDE });
   }
+
+  static async bulkUpdateSale(where: WhereOptions, updateData: Partial<Sale>) {
+    const [count] = await Sale.update(updateData, { where });
+    return [count];
+  }
 }
 
 export default SaleServices;
