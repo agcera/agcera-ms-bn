@@ -32,7 +32,7 @@ class StoreServices {
   static async getAllStores(queryData?: GetAllRequestQuery, where?: WhereOptions, include?: IncludeOptions[]) {
     const { count, rows } = await Store.findAndCountAll(
       findQueryGenerators(Store.getAttributes(), queryData, {
-        where: { name: { [Op.not]: 'expired' }, ...where },
+        where,
         include,
       })
     );
@@ -45,8 +45,23 @@ class StoreServices {
     return await Store.findOne({ where: { name: { [Op.not]: 'expired' }, ...where }, include });
   }
 
+  // get one store
+  static async getOneStoreWithExpired(where: WhereOptions, include?: IncludeOptions[]) {
+    return await Store.findOne({ where, include });
+  }
+
   // get store by id
-  static async getStoreById(id: string, include?: IncludeOptions[]) {
+  static async getStoreById(
+    id: string,
+    include: IncludeOptions[] = [
+      { ...this.DEFAULT_USER_INCLUDES },
+      { ...this.DEFAULT_PRODUCTS_INCLUDES },
+      {
+        association: 'fromThis',
+      },
+      { association: 'toThis' },
+    ]
+  ) {
     return await Store.findByPk(id, { include });
   }
 

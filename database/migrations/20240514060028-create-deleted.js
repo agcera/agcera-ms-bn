@@ -19,15 +19,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      userId: {
+      deletedBy: {
         allowNull: false,
-        type: Sequelize.UUID,
-        references: {
-          model: 'Users',
-          key: 'id',
-        },
+        type: Sequelize.TEXT
       },
-
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

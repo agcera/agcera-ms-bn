@@ -24,7 +24,7 @@ class Sale extends Model<InferAttributes<Sale>, InferCreationAttributes<Sale>> {
   declare paymentMethod: PaymentMethodsEnum;
 
   // The client who made the sale, if he is not registered in the system use a phone number.
-  declare clientId: ForeignKey<User['id']> | string;
+  declare clientId: ForeignKey<User['id']> | string | null;
   declare clientType: ClientTypesEnum;
   declare storeId: ForeignKey<Store['id']>;
 
@@ -56,7 +56,7 @@ Sale.init(
       defaultValue: PaymentMethodsEnum.MOMO,
     },
     clientId: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.STRING,
     },
     clientType: {

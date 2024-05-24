@@ -1,8 +1,9 @@
+
 'use strict';
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('SaleProducts', {
+    await queryInterface.createTable('Clients', {
       id: {
         unique: true,
         allowNull: false,
@@ -10,37 +11,32 @@ module.exports = {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
       },
-      quantity: {
+      name: {
         allowNull: false,
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
       },
-      saleId: {
+      phone: {
         allowNull: false,
-        type: Sequelize.UUID,
-        onDelete: 'CASCADE',
-        references: {
-          model: 'Sales',
-          key: 'id',
-        },
+        type: Sequelize.STRING,
       },
-      variationId: {
+      isMember: {
         allowNull: false,
-        type: Sequelize.UUID,
-        references: {
-          model: 'Variations',
-          key: 'id',
-        },
+        type: Sequelize.BOOLEAN
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
-      updatedAt: Sequelize.DATE,
-      deletedAt: Sequelize.DATE,
+      updatedAt: Sequelize.DATE ,
+      deletedAt: Sequelize.DATE
+
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('SaleProducts');
+    await queryInterface.dropTable('Clients');
   },
 };
+
+
+
