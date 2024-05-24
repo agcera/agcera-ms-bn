@@ -34,7 +34,8 @@ module.exports = {
       },
 
       storeId: {
-        allowNull: false,
+        allowNull: true,
+        onDelete: 'SET NULL',
         type: Sequelize.UUID,
         references: {
           model: 'Stores',

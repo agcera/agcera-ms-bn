@@ -2,18 +2,18 @@ import sequelize from '@database/connection';
 
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 
-class Deleted extends Model<InferAttributes<Deleted>, InferCreationAttributes<Deleted>> {
+class Client extends Model<InferAttributes<Client>, InferCreationAttributes<Client>> {
   declare id: CreationOptional<string>;
-  declare table: string;
-  declare description: string;
-  declare deletedBy: string;
+  declare name: string;
+  declare phone: string;
+  declare isMember: boolean;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | null;
   declare deletedAt: Date | null;
 }
 
-Deleted.init(
+Client.init(
   {
     id: {
       unique: true,
@@ -22,18 +22,19 @@ Deleted.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
     },
-    table: {
+    name: {
       unique: true,
       type: DataTypes.STRING,
       allowNull: false,
     },
-    description: {
-      type: DataTypes.TEXT,
+    phone: {
+      type: DataTypes.STRING,
       allowNull: false,
       defaultValue: '',
     },
-    deletedBy: {
-      type: DataTypes.STRING,
+    isMember: {
+      allowNull: false,
+      type: DataTypes.BOOLEAN,
     },
 
     createdAt: {
@@ -46,9 +47,9 @@ Deleted.init(
   },
   {
     sequelize: sequelize,
-    modelName: 'Deleted',
-    tableName: 'Deleteds',
+    modelName: 'Client',
+    tableName: 'Clients',
   }
 );
 
-export default Deleted;
+export default Client;

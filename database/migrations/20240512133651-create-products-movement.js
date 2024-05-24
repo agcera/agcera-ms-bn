@@ -35,16 +35,18 @@ module.exports = {
       },
 
       from: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.UUID,
+        onDelete: 'SET NULL',
         references: {
           model: 'Stores',
           key: 'id',
         },
       },
       to: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.UUID,
+        onDelete: 'SET NULL',
         references: {
           model: 'Stores',
           key: 'id',

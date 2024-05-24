@@ -4,7 +4,6 @@ import { Response } from 'express';
 import { IncludeOptions, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 import Deleted from '@database/models/deleted';
-import DeletedServices from '@src/services/deleted.services';
 
 class HistoryController extends BaseController {
   async getAllDeleted(req: ExtendedRequest, res: Response) {
@@ -12,20 +11,15 @@ class HistoryController extends BaseController {
 
     const { search, limit, skip, sort } = req.query;
 
-    const WhereOptions: WhereOptions = {};
-    // const include: IncludeOptions[] = [{association: 'user', attributes: ['name', 'email', 'phone']}];
-
-    switch (userRole) {
-      case 'keeper' || 'user':
-        WhereOptions['userId'] = req.user!.id;
-        break;
-      case 'admin':
-        break;
+    // only the admin is allowed to view all deleted items
+    if (userRole !== 'admin') {
+      return res.status(403).json({
+        status: 403,
+        error: 'You are not authorized to view deleted items',
+      });
     }
 
-    const { Deleted: deletedItems } = await DeletedServices.getAllDeleted({ search, limit, skip, sort }, WhereOptions);
-
-    console.log(deletedItems[0]);
+    const { Deleted: deletedItems } = await HistoryServices.getAllDeleted({ search, skip, sort, limit }, {});
 
     return res.status(200).json({
       status: 200,
@@ -81,6 +75,7 @@ class HistoryController extends BaseController {
     });
   }
 
+  // MOVEMENTS
   // get all movements
   async getProductsMovements(req: ExtendedRequest, res: Response) {
     const { role: userRole, storeId } = req.user!;

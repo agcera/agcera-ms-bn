@@ -88,7 +88,7 @@ class AnalyticsController extends BaseController {
     // compute the number of products sold by each shop
     const productsSoldByShops = unfilteredSales.reduce(
       (acc, sale) => {
-        const name = sale.store.name;
+        const name = sale.store?.name || 'Deleted Store';
         acc[name] =
           (acc[name] || 0) +
           sale.variations.reduce((acc, variation) => acc + variation.quantity! * variation.variation.number, 0);

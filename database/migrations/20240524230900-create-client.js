@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Deleteds', {
+    await queryInterface.createTable('Clients', {
       id: {
         unique: true,
         allowNull: false,
@@ -11,17 +11,17 @@ module.exports = {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
       },
-      description: {
-        allowNull: false,
-        type: Sequelize.TEXT,
-      },
-      table: {
+      name: {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      deletedBy: {
+      phone: {
         allowNull: false,
-        type: Sequelize.TEXT
+        type: Sequelize.STRING,
+      },
+      isMember: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN
       },
       createdAt: {
         allowNull: false,
@@ -34,7 +34,7 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable('Deleteds');
+    await queryInterface.dropTable('Clients');
   },
 };
 

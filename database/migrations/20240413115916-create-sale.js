@@ -26,8 +26,10 @@ module.exports = {
         defaultValue: 'USER',
       },
       storeId: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.UUID,
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
         references: {
           model: 'Stores',
           key: 'id',

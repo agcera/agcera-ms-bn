@@ -9,7 +9,7 @@ import { UserRolesEnum } from '@src/types/user.types';
 import User from '@database/models/user';
 import StoreProduct from '@database/models/storeproduct';
 import ProductsMovement from '@database/models/productsmovement';
-// import { recordDeleted } from '@src/services/deleted.services';
+import { recordDeleted } from '@src/services/history.services';
 
 class StoresController extends BaseController {
   async createStore(req: Request, res: Response): Promise<Response> {
@@ -215,7 +215,7 @@ class StoresController extends BaseController {
   // delete store
   async deleteStore(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
-    // const user = req.user!;
+    const user = req.user!;
 
     // const include: IncludeOptions[] = [
     //   {
@@ -254,11 +254,38 @@ class StoresController extends BaseController {
     // move all users to the main store
     await UserService.bulkUpdateUsers({ storeId: id }, { storeId: mainStore!.id });
 
+    // before destroying let us handle the field remaining in movements controller
+    // get all movements related to the store the froms and the tos
+
+    // create a loop that is able to loop around all the froms and the tos and update the store id to the null
+    const movements = await ProductsMovement.findAll({
+      where: { [Op.or]: { from: store.id, to: store.id } },
+    });
+    for (let i = 0; i < movements.length; i++) {
+      const movement = movements[i];
+      if (movement.from === store.id) {
+        movement.from = null;
+        // check if the too is null and delete the movement
+        if (movement.to === null) {
+          await movement.destroy();
+          continue;
+        }
+      } else {
+        movement.to = null;
+        // check if the from is null and delete the movement
+        if (movement.from === null) {
+          await movement.destroy();
+          continue;
+        }
+      }
+      await movement?.save();
+    }
+
     // delete the store
     await store.destroy();
 
     // record to the deleted table
-    // await recordDeleted({name: user.name, phone: user.phone}, 'store', store);
+    await recordDeleted({ name: user.name, phone: user.phone }, 'store', store);
 
     return res.status(200).json({
       status: 'success',

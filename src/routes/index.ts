@@ -6,7 +6,7 @@ import usersRoute from './usersRoute';
 import { validateQueries } from '@src/middlewares/validation';
 import generateReport from './report';
 import transactionRoutes from './transactionRoutes';
-import deletedRoutes from './deletetedRoutes';
+// import deletedRoutes from './deletetedRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import historyRoutes from './historyRoutes';
 
@@ -21,7 +21,7 @@ router.use('/products', productsRoutes);
 router.use('/sales', salesRoutes);
 router.use('/report', generateReport);
 router.use('/transactions', transactionRoutes);
-router.use('/deleted', deletedRoutes);
+// router.use('/deleted', deletedRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/history', historyRoutes);
 

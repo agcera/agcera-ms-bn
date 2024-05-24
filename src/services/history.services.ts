@@ -37,6 +37,14 @@ class HistoryServices {
 
 export default HistoryServices;
 
-export const recordDeleted = async (deletedBy: string, table: string, description: Model) => {
-  await Deleted.create({ deletedBy, description: JSON.stringify(description.dataValues), table });
+// RECORD DELETED ITEM
+
+export const recordDeleted = async (deletedBy: { name: string; phone: string }, table: string, description: Model) => {
+  console.log(description);
+
+  await Deleted.create({
+    deletedBy: JSON.stringify(deletedBy),
+    description: `{ "${table}" : ${JSON.stringify(description.dataValues)}}`,
+    table,
+  });
 };

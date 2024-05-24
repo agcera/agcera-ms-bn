@@ -53,7 +53,14 @@ class StoreServices {
   // get store by id
   static async getStoreById(
     id: string,
-    include: IncludeOptions[] = [{ ...this.DEFAULT_USER_INCLUDES }, { ...this.DEFAULT_PRODUCTS_INCLUDES }]
+    include: IncludeOptions[] = [
+      { ...this.DEFAULT_USER_INCLUDES },
+      { ...this.DEFAULT_PRODUCTS_INCLUDES },
+      {
+        association: 'fromThis',
+      },
+      { association: 'toThis' },
+    ]
   ) {
     return await Store.findByPk(id, { include });
   }
