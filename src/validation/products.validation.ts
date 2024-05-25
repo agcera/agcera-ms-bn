@@ -17,7 +17,6 @@ export const createNewProductSchema = Joi.object({
     )
     .unique('name')
     .min(1)
-    .unique('number')
     .required(),
 });
 
@@ -33,6 +32,5 @@ export const updateProductSchema = Joi.object({
       })
     )
     .unique('name')
-    .unique('number')
     .min(1),
 });
