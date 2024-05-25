@@ -1,5 +1,6 @@
 import sequelize from '@database/connection';
 import {
+  Association,
   CreationOptional,
   DataTypes,
   ForeignKey,
@@ -10,6 +11,7 @@ import {
   NonAttribute,
 } from 'sequelize';
 import Product from './product';
+import Sale from './sale';
 
 class Variation extends Model<InferAttributes<Variation>, InferCreationAttributes<Variation>> {
   declare id: CreationOptional<string>;
@@ -20,6 +22,13 @@ class Variation extends Model<InferAttributes<Variation>, InferCreationAttribute
 
   declare productId: ForeignKey<Product['id']>;
   declare product: NonAttribute<Product>;
+
+  declare sales?: NonAttribute<Sale[]>;
+
+  declare static associations: {
+    product: Association<Variation, Product>;
+    sales: Association<Variation, Sale>;
+  };
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | null;

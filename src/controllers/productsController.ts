@@ -6,8 +6,9 @@ import { UserRolesEnum } from '@src/types/user.types';
 import { handleDeleteUpload, handleUpload } from '@src/utils/cloudinary';
 import { UploadApiErrorResponse } from 'cloudinary';
 import { Request, Response } from 'express';
-import { IncludeOptions, Op } from 'sequelize';
+import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
+import Variation from '@database/models/variation';
 // import Product from '@database/models/product';
 // import { recordDeleted } from '@src/services/deleted.services';
 
@@ -53,7 +54,6 @@ export default class ProductsController extends BaseController {
 
     const product = await ProductServices.getOneProduct({ id }, include, isAdmin);
     // const product = await Product.findByPk(id)
-    console.log(product);
     if (!product) {
       return res.status(404).json({
         status: 'fail',
@@ -167,10 +167,30 @@ export default class ProductsController extends BaseController {
       handleDeleteUpload(previousProduct.image).catch((error) => {
         console.error('Failed to delete the old image', error);
       });
-    // Delete all the previous product variations
-    await VariationServices.deleteVariations({ productId: id });
-    // Create all the new variations
-    await VariationServices.addManyVariations(product.id, variations);
+    // Update the variations
+    if (variations?.length > 0) {
+      const where: WhereOptions = { name: { [Op.notIn]: variations.map((v: Variation) => v.name) } };
+      const includes: IncludeOptions[] = [{ association: 'sales' }];
+      const deleteVariations = await VariationServices.getAllVariations(id, where, includes);
+      if (deleteVariations.length) {
+        for (const variation of deleteVariations) {
+          if (variation.sales?.length) {
+            return res.status(400).json({
+              status: 'fail',
+              message: `Variation: ${variation.name} can no longer be deleted because it has already been used in sales.`,
+            });
+          }
+        }
+        await VariationServices.deleteVariations({ id: { [Op.in]: deleteVariations.map((v) => v.id) } });
+      }
+
+      while (variations.length > 0) {
+        const variation = variations[0];
+        console.log('variation ', variation);
+        await VariationServices.updateOrCreateVariation(id, variation);
+        variations.shift();
+      }
+    }
 
     // Reload the product to get the new variations
     await product.reload();

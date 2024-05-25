@@ -1,6 +1,6 @@
 import Variation from '@database/models/variation';
 import ProductServices from './product.services';
-import { WhereOptions } from 'sequelize';
+import { IncludeOptions, WhereOptions } from 'sequelize';
 
 export default class VariationServices {
   static async deleteVariations(where: WhereOptions) {
@@ -36,7 +36,11 @@ export default class VariationServices {
   }
 
   // Get all variations of a product
-  static async getAllVariations(productId: string): Promise<Variation[]> {
-    return Variation.findAll({ where: { productId } });
+  static async getAllVariations(
+    productId: string,
+    where?: WhereOptions,
+    includes?: IncludeOptions[]
+  ): Promise<Variation[]> {
+    return Variation.findAll({ where: { productId, ...where }, include: includes });
   }
 }

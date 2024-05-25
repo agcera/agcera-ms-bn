@@ -67,7 +67,6 @@ class AnalyticsController extends BaseController {
         acc[date] =
           (acc[date] || 0) +
           sale.variations.reduce((acc, variation) => acc + variation.quantity! * variation.variation.sellingPrice, 0);
-        console.log(date, ' and ', acc[date]);
         return acc;
       },
       {} as { [key: string]: number }
