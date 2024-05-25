@@ -13,17 +13,16 @@ module.exports = {
       },
       paymentMethod: {
         allowNull: false,
-        type: Sequelize.ENUM('CASH', 'MOMO'),
+        type: Sequelize.ENUM('M-PESA', 'E-MOLA', 'P.O.S', 'BANCO BIM', 'BANCO BCI', 'CASH'),
         defaultValue: 'MOMO',
       },
       clientId: {
-        allowNull: true,
-        type: Sequelize.STRING,
-      },
-      clientType: {
         allowNull: false,
-        type: Sequelize.ENUM('USER', 'CLIENT'),
-        defaultValue: 'USER',
+        type: Sequelize.UUID,
+        references: {
+          model: 'Clients',
+          key: 'id',
+        }
       },
       storeId: {
         allowNull: true,
@@ -40,6 +39,7 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
+      refundedAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE,
       deletedAt: Sequelize.DATE,
     });

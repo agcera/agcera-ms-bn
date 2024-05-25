@@ -11,7 +11,7 @@ import userService from '../services/user.services';
 import { /* defaultTokenExpirySeconds,*/ generateToken, verifyToken } from '../utils/jwtFunctions';
 import sendEmail from '../utils/sendEmail';
 // import { recordDeleted } from '@src/services/deleted.services';
-import SaleServices from '@src/services/sale.services';
+// import SaleServices from '@src/services/sale.services';
 
 class UsersController extends BaseController {
   async register(req: Request, res: Response): Promise<Response> {
@@ -430,7 +430,7 @@ class UsersController extends BaseController {
     }
 
     // find all sales which contain the clientId of useId and update them to null
-    await SaleServices.bulkUpdateSale({ clientId: foundUser.id }, { clientId: null });
+    // await SaleServices.bulkUpdateSale({ clientId: foundUser.id }, { clientId: null });
 
     // delete the user
     await foundUser.destroy();
