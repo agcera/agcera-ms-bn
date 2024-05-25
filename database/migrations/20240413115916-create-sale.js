@@ -14,7 +14,7 @@ module.exports = {
       paymentMethod: {
         allowNull: false,
         type: Sequelize.ENUM('M-PESA', 'E-MOLA', 'P.O.S', 'BANCO BIM', 'BANCO BCI', 'CASH'),
-        defaultValue: 'MOMO',
+        defaultValue: 'P.O.S',
       },
       clientId: {
         allowNull: false,
