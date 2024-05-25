@@ -10,6 +10,6 @@ const salesController = new SalesController();
 router.get('/', isLoggedIn, salesController.getAllSales);
 router.get('/:id', isLoggedIn, validateParams(), salesController.getOneSale);
 router.post('/', isStoreKeeper, validate(createSaleSchema), salesController.createSale);
-router.delete('/:id', isStoreKeeperUp, validateParams(), salesController.deleteSale);
+router.patch('/:id', isStoreKeeperUp, validateParams(), salesController.refundSale);
 
 export default router;

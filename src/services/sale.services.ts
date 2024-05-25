@@ -1,7 +1,6 @@
 import Sale, { PaymentMethodsEnum } from '@database/models/sale';
 import SaleProduct from '@database/models/saleproduct';
 import { GetAllRequestQuery } from '@src/types/sales.types';
-import { ClientTypesEnum } from '@src/types/user.types';
 import { findQueryGenerators } from '@src/utils/generators';
 import { IncludeOptions, WhereOptions } from 'sequelize';
 // import { Op } from 'sequelize'
@@ -48,10 +47,9 @@ class SaleServices {
     variations: { [key: string]: number },
     paymentMethod: PaymentMethodsEnum,
     clientId: string,
-    clientType: ClientTypesEnum,
     storeId: string
   ) {
-    const sale = await Sale.create({ paymentMethod, clientId, clientType, storeId });
+    const sale = await Sale.create({ paymentMethod, clientId, storeId });
 
     if (!sale) {
       throw new Error('Error creating sale');

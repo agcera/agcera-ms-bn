@@ -1,7 +1,6 @@
 import { UserRolesEnum } from './../types/user.types';
 import SaleServices from '@src/services/sale.services';
 import StoreServices from '@src/services/store.services';
-import UserService from '@src/services/user.services';
 import { ExtendedRequest } from '@src/types/common.types';
 import { ClientTypesEnum } from '@src/types/user.types';
 import { type Response } from 'express';
@@ -9,6 +8,7 @@ import { IncludeOptions, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 import Variation from '@database/models/variation';
 import StoreProduct from '@database/models/storeproduct';
+import CleintServices from '@src/services/client.services';
 // import { recordDeleted } from '@src/services/deleted.services';
 
 class SalesController extends BaseController {
@@ -81,7 +81,7 @@ class SalesController extends BaseController {
 
   async createSale(req: ExtendedRequest, res: Response): Promise<Response | undefined> {
     const user = req.user!;
-    const { variations, paymentMethod, clientId, clientType, storeId } = req.body;
+    const { variations, paymentMethod, storeId, clientName, phone, isMember } = req.body;
 
     // Check if the user is allowed to create a sale in the store
     if (user.role === 'keeper' && user.storeId !== storeId) {
@@ -101,26 +101,11 @@ class SalesController extends BaseController {
       });
     }
 
-    //get the client type
-    if (clientType === ClientTypesEnum.USER) {
-      const client = await UserService.getOneUser({ id: clientId });
-      if (!client) {
-        return res.status(404).json({
-          status: 404,
-          message: 'User with the provided clientId not found',
-        });
-      }
-    }
+    // check if the client with this phone number exists, if he does not exit create a new client
+    let client = await CleintServices.getClientsByPhone(phone);
 
-    // if client type a client, check if there is no client with that phone number
-    if (clientType === ClientTypesEnum.CLIENT) {
-      const client = await UserService.getOneUser({ phone: clientId });
-      if (client) {
-        return res.status(400).json({
-          status: 400,
-          message: 'A client with the provided phone number already exists please provide his useId instead',
-        });
-      }
+    if (!client) {
+      client = await CleintServices.createClient(clientName, phone, isMember);
     }
 
     // Check if the products exist and are available in the store
@@ -168,7 +153,7 @@ class SalesController extends BaseController {
     }
 
     // Create the sale
-    const sale = await SaleServices.createSale(variations, paymentMethod, clientId, clientType, storeId);
+    const sale = await SaleServices.createSale(variations, paymentMethod, client.id, storeId);
 
     // Update the quantity of the products in the store
     const productsIds = Object.keys(product_removed);
@@ -188,7 +173,7 @@ class SalesController extends BaseController {
     });
   }
 
-  async deleteSale(req: ExtendedRequest, res: Response): Promise<Response> {
+  async refundSale(req: ExtendedRequest, res: Response): Promise<Response> {
     const user = req.user!;
     const { id } = req.params;
 
@@ -225,7 +210,8 @@ class SalesController extends BaseController {
       );
     }
 
-    await sale.destroy();
+    sale.refundedAt = new Date();
+    await sale.save();
 
     // record the deleted sale
     // await recordDeleted({name: user.name, phone: user.phone}, 'sale', sale);
