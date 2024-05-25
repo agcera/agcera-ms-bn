@@ -9,14 +9,17 @@ import {
   CreationOptional,
   Association,
 } from 'sequelize';
-import User from './user';
 import Store from './store';
-import { ClientTypesEnum } from '@src/types/user.types';
 import SaleProduct from './saleproduct';
+import Client from './client';
 
 export enum PaymentMethodsEnum {
+  MPESA = 'M-PESA',
+  EMOLA = 'E-MOLA',
+  POS = 'P.O.S',
+  BIM = 'BANCO BIM',
+  BCI = 'BANCO BCI',
   CASH = 'CASH',
-  MOMO = 'MOMO',
 }
 
 class Sale extends Model<InferAttributes<Sale>, InferCreationAttributes<Sale>> {
@@ -24,12 +27,12 @@ class Sale extends Model<InferAttributes<Sale>, InferCreationAttributes<Sale>> {
   declare paymentMethod: PaymentMethodsEnum;
 
   // The client who made the sale, if he is not registered in the system use a phone number.
-  declare clientId: ForeignKey<User['id']> | string | null;
-  declare clientType: ClientTypesEnum;
+  declare clientId: ForeignKey<Client['id']>;
   declare storeId: ForeignKey<Store['id']>;
 
   declare store: NonAttribute<Store>;
   declare variations: NonAttribute<SaleProduct[]>;
+  declare client: NonAttribute<Client>;
 
   declare static associations: {
     variations: Association<SaleProduct, Sale>;
@@ -37,6 +40,7 @@ class Sale extends Model<InferAttributes<Sale>, InferCreationAttributes<Sale>> {
   };
 
   declare readonly createdAt: CreationOptional<Date>;
+  declare refundedAt: Date | null;
   declare updatedAt: Date | undefined;
   declare deletedAt: Date | undefined;
 }
@@ -52,18 +56,25 @@ Sale.init(
     },
     paymentMethod: {
       allowNull: false,
-      type: DataTypes.ENUM(PaymentMethodsEnum.CASH, PaymentMethodsEnum.MOMO),
-      defaultValue: PaymentMethodsEnum.MOMO,
+      type: DataTypes.ENUM(
+        PaymentMethodsEnum.CASH,
+        PaymentMethodsEnum.BCI,
+        PaymentMethodsEnum.BIM,
+        PaymentMethodsEnum.EMOLA,
+        PaymentMethodsEnum.MPESA,
+        PaymentMethodsEnum.POS
+      ),
+      defaultValue: PaymentMethodsEnum.CASH,
     },
     clientId: {
       allowNull: true,
       type: DataTypes.STRING,
+      references: {
+        model: 'Clients',
+        key: 'id',
+      },
     },
-    clientType: {
-      allowNull: false,
-      type: DataTypes.ENUM(ClientTypesEnum.USER, ClientTypesEnum.CLIENT),
-      defaultValue: ClientTypesEnum.USER,
-    },
+
     storeId: {
       allowNull: false,
       type: DataTypes.UUID,
@@ -79,6 +90,7 @@ Sale.init(
     },
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
+    refundedAt: DataTypes.DATE,
   },
   {
     sequelize,
@@ -87,8 +99,8 @@ Sale.init(
   }
 );
 
-Sale.belongsTo(User, { foreignKey: 'clientId', as: 'client' });
-User.hasMany(Sale, { foreignKey: 'clientId', as: 'sales' });
+Sale.belongsTo(Client, { foreignKey: 'clientId', as: 'client' });
+Client.hasMany(Sale, { foreignKey: 'clientId', as: 'sales' });
 
 Sale.belongsTo(Store, { foreignKey: 'storeId', as: 'store' });
 Store.hasMany(Sale, { foreignKey: 'storeId', as: 'sales' });

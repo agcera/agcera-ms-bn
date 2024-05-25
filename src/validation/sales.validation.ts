@@ -1,5 +1,4 @@
 import { PaymentMethodsEnum } from '@database/models/sale';
-import { ClientTypesEnum } from '@src/types/user.types';
 import Joi from 'joi';
 
 export type CreateSaleProduct = {
@@ -12,16 +11,11 @@ export const createSaleSchema = Joi.object({
   paymentMethod: Joi.string()
     .valid(...Object.values(PaymentMethodsEnum))
     .required(),
-  clientId: Joi.alternatives()
-    .try(
-      Joi.string()
-        .pattern(/^\+\d{12}$/)
-        .message('Please provide a valid phone number that starts with + and have 12 digits for clientId'),
-      Joi.string().uuid().message('Invalid UUID for clientId')
-    )
+  phone: Joi.string()
+    .pattern(/^\+\d{12}$/)
+    .message('Please provide a valid phone number that starts with + and have 12 digits for clientId')
     .required(),
-  clientType: Joi.string()
-    .valid(...Object.values(ClientTypesEnum))
-    .required(),
+  clientName: Joi.string().required(),
+  isMember: Joi.boolean().default(false),
   storeId: Joi.string().uuid().required(),
 });
