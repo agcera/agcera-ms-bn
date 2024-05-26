@@ -86,7 +86,7 @@ User.init(
     role: {
       type: DataTypes.ENUM(...Object.values(UserRolesEnum)),
       allowNull: false,
-      defaultValue: UserRolesEnum.USER,
+      defaultValue: UserRolesEnum.KEEPER,
     },
     storeId: {
       type: DataTypes.UUID,

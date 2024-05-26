@@ -1,6 +1,6 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up (queryInterface, Sequelize) {
     await queryInterface.createTable('Users', {
       id: {
         unique: true,
@@ -49,9 +49,9 @@ module.exports = {
         defaultValue: 'Maputo Center',
       },
       role: {
-        type: Sequelize.ENUM('admin', 'keeper', 'user'),
+        type: Sequelize.ENUM('admin', 'keeper'),
         allowNull: false,
-        defaultValue: 'user',
+        defaultValue: 'keeper',
       },
       storeId: {
         type: Sequelize.UUID,
@@ -75,7 +75,7 @@ module.exports = {
       deletedAt: Sequelize.DATE,
     });
   },
-  async down(queryInterface) {
+  async down (queryInterface) {
     await queryInterface.dropTable('Users');
   },
 };

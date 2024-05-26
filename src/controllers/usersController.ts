@@ -233,7 +233,7 @@ class UsersController extends BaseController {
 
     let where: WhereOptions = {};
     if (user.role === 'keeper') {
-      where = { [Op.or]: [{ role: UserRolesEnum.USER }, { storeId: user.storeId }] };
+      where = { [Op.or]: [/* { role: UserRolesEnum.USER },*/ { storeId: user.storeId }] };
     }
 
     const { users, total } = await userService.getAllUsers(req.query, where);
@@ -251,14 +251,15 @@ class UsersController extends BaseController {
 
     const foundUser = await userService.getUserById(id);
 
-    if (user.role === 'user' && user.id !== id) {
-      return res.status(403).json({
-        status: 'fail',
-        message: 'You can only request your account',
-      });
-    } else if (
+    // if (user.role === 'user' && user.id !== id) {
+    //   return res.status(403).json({
+    //     status: 'fail',
+    //     message: 'You can only request your account',
+    //   });
+    // } else
+    if (
       user.role === 'keeper' &&
-      foundUser?.role !== UserRolesEnum.USER &&
+      // foundUser?.role !== UserRolesEnum.USER &&
       user.storeId !== foundUser?.storeId
     ) {
       return res.status(403).json({
@@ -297,7 +298,7 @@ class UsersController extends BaseController {
 
     const user = await userService.getUserById(id);
     if (
-      ([UserRolesEnum.USER].includes(req.user!.role) && user?.id !== req.user!.id) ||
+      // ( [UserRolesEnum.USER].includes(req.user!.role) && user?.id !== req.user!.id) ||
       req.user!.role === UserRolesEnum.KEEPER
     ) {
       return res.status(400).json({
@@ -319,7 +320,10 @@ class UsersController extends BaseController {
     }
 
     // Check if email or phone are already taken
-    const duplicateUser = await userService.getOneUser({ [Op.or]: [{ email }, { phone }], [Op.not]: { id } });
+    const duplicateUser = await userService.getOneUser({
+      [Op.or]: [...[email && { email }], { phone }],
+      [Op.not]: { id },
+    });
     if (duplicateUser) {
       let message = '';
       if (duplicateUser.email === email) {
@@ -403,31 +407,31 @@ class UsersController extends BaseController {
       });
     }
     // get the user role that will be deleted
-    const userRole = foundUser.role;
+    // const userRole = foundUser.role;
 
     // if the role tobe deleted is not user, be consious
-    if (userRole !== 'user') {
-      // check if the logged in user is admin
-      if (user.role !== 'admin') {
-        return res.status(403).json({
-          status: 403,
-          message: 'You are not allowed to delete this user',
-        });
-      }
-      if (user.id === id) {
-        return res.status(403).json({
-          status: 'fail',
-          message: 'You cannot delete yourself, ask another admin to delete your account',
-        });
-      }
-    } else {
-      if (user.role !== UserRolesEnum.ADMIN && user.id !== id) {
-        return res.status(403).json({
-          status: 403,
-          message: 'You are only allowed to delete your account',
-        });
-      }
+    // if (userRole !== 'user') {
+    // check if the logged in user is admin
+    if (user.role !== 'admin') {
+      return res.status(403).json({
+        status: 403,
+        message: 'You are not allowed to delete this user',
+      });
     }
+    if (user.id === id) {
+      return res.status(403).json({
+        status: 'fail',
+        message: 'You cannot delete yourself, ask another admin to delete your account',
+      });
+    }
+    // } else {
+    //   if (user.role !== UserRolesEnum.ADMIN && user.id !== id) {
+    //     return res.status(403).json({
+    //       status: 403,
+    //       message: 'You are only allowed to delete your account',
+    //     });
+    //   }
+    // }
 
     // find all sales which contain the clientId of useId and update them to null
     // await SaleServices.bulkUpdateSale({ clientId: foundUser.id }, { clientId: null });

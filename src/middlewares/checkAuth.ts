@@ -57,10 +57,10 @@ export class AuthMiddleware extends BaseMiddleware {
     }
 
     // If only checking if the user is logged in
-    if (this.requiredRole === '*') {
-      (req as ExtendedRequest).user = user;
-      return next();
-    }
+    // if (this.requiredRole === '*') {
+    //   (req as ExtendedRequest).user = user;
+    //   return next();
+    // }
 
     // Check if the user has the required role
     if (Array.isArray(this.requiredRole) ? this.requiredRole.includes(user.role) : user.role === this.requiredRole) {
@@ -77,12 +77,12 @@ export class AuthMiddleware extends BaseMiddleware {
 
 export const isAdmin = new AuthMiddleware('admin').checkAuth;
 export const isStoreKeeper = new AuthMiddleware('keeper').checkAuth;
-export const isUser = new AuthMiddleware('user').checkAuth;
+// export const isUser = new AuthMiddleware('user').checkAuth;
 
 // You can also check for any role you wish
 
 // use the same check role to simply check if the user is logged in
-export const isLoggedIn = new AuthMiddleware('*').checkAuth;
+// export const isLoggedIn = new AuthMiddleware('*').checkAuth;
 
 // In addition you can check for multiple roles
 export const isStoreKeeperUp = new AuthMiddleware(['keeper', 'admin']).checkAuth;

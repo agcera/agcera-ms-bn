@@ -4,7 +4,7 @@ export enum ClientTypesEnum {
 }
 
 export enum UserRolesEnum {
-  USER = 'user',
+  // USER = 'user',
   KEEPER = 'keeper',
   ADMIN = 'admin',
 }

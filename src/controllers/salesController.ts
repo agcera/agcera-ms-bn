@@ -2,7 +2,6 @@ import { UserRolesEnum } from './../types/user.types';
 import SaleServices from '@src/services/sale.services';
 import StoreServices from '@src/services/store.services';
 import { ExtendedRequest } from '@src/types/common.types';
-import { ClientTypesEnum } from '@src/types/user.types';
 import { type Response } from 'express';
 import { IncludeOptions, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
@@ -19,10 +18,10 @@ class SalesController extends BaseController {
     const include: IncludeOptions[] = [];
 
     switch (userRole) {
-      case 'user':
-        where['clientId'] = userId;
-        where['clientType'] = ClientTypesEnum.USER;
-        break;
+      // case 'user':
+      //   where['clientId'] = userId;
+      //   where['clientType'] = ClientTypesEnum.USER;
+      //   break;
       case 'keeper':
         include.push({
           association: 'store',
@@ -50,7 +49,7 @@ class SalesController extends BaseController {
   }
 
   async getOneSale(req: ExtendedRequest, res: Response): Promise<Response> {
-    const { role: userRole, id: userId, storeId } = req.user!;
+    const { role: userRole, storeId } = req.user!;
     const { id } = req.params;
 
     const include: IncludeOptions = {
@@ -59,7 +58,11 @@ class SalesController extends BaseController {
     };
     const sale = await SaleServices.getOneSale({ id }, [include]);
 
-    if ((userRole === 'user' && sale?.clientId !== userId) || (userRole === 'keeper' && sale?.store.id !== storeId)) {
+    if (
+      // (userRole === 'user' && sale?.clientId !== userId) ||
+      userRole === 'keeper' &&
+      sale?.store.id !== storeId
+    ) {
       return res.status(403).json({
         status: 403,
         message: 'You are not allowed to view this sale or sale does not exist',
