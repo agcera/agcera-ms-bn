@@ -6,7 +6,7 @@ import { IncludeOptions, WhereOptions } from 'sequelize';
 export default class ProductServices {
   static DEFAULT_VARIATION_INCLUDE: IncludeOptions = {
     association: 'variations',
-    attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt', 'costPrice'] },
+    attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
   };
 
   // the include when the user is a keeper with variations

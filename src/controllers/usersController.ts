@@ -10,6 +10,8 @@ import { BaseController } from '.';
 import userService from '../services/user.services';
 import { /* defaultTokenExpirySeconds,*/ generateToken, verifyToken } from '../utils/jwtFunctions';
 import sendEmail from '../utils/sendEmail';
+import Store from '@database/models/store';
+
 // import { recordDeleted } from '@src/services/deleted.services';
 // import SaleServices from '@src/services/sale.services';
 
@@ -111,6 +113,25 @@ class UsersController extends BaseController {
       return res.status(400).json({
         status: 'fail',
         message: 'Invalid credentials',
+      });
+    }
+
+    const main = await Store.findOne({ where: { name: 'main' } });
+    // check if the main store is active
+    if (main?.isActive === false && user.role !== 'admin') {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'The system Is now Closed, please contact the admin!',
+      });
+    }
+
+    // check if the storeof the user is active
+    const storeId = user.storeId;
+    const store = await Store.findByPk(storeId!);
+    if (store?.isActive === false) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Your store has been disactivated, please contact the admin!',
       });
     }
 
