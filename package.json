@@ -12,7 +12,6 @@
     "build": "tsc && tsc-alias",
     "start": "npm run db:migrate && npm run db:seed && node build/server.js",
     "build:docker": "make build_image",
-    "prepare": "husky",
     "lint": "eslint . --fix",
     "format": "prettier --write ."
   },
