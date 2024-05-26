@@ -14,7 +14,6 @@ import CleintServices from '@src/services/client.services';
 class SalesController extends BaseController {
   async getAllSales(req: ExtendedRequest, res: Response): Promise<Response> {
     const { role: userRole, id: userId } = req.user!;
-    const { search, limit, skip, sort } = req.query;
 
     const where: WhereOptions = {};
     const include: IncludeOptions[] = [];
@@ -42,7 +41,7 @@ class SalesController extends BaseController {
         break;
     }
 
-    const { sales, total } = await SaleServices.getAllSales({ search, limit, skip, sort }, where, include);
+    const { sales, total } = await SaleServices.getAllSales(req.query, where, include);
 
     return res.status(200).json({
       status: 200,

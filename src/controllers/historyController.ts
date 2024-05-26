@@ -19,12 +19,13 @@ class HistoryController extends BaseController {
       });
     }
 
-    const { Deleted: deletedItems } = await HistoryServices.getAllDeleted({ search, skip, sort, limit }, {});
+    const { Deleted: deletedItems, total } = await HistoryServices.getAllDeleted({ search, skip, sort, limit }, {});
 
     return res.status(200).json({
       status: 200,
       data: {
         deletedItems,
+        total,
       },
     });
   }

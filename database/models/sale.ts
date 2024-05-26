@@ -68,13 +68,12 @@ Sale.init(
     },
     clientId: {
       allowNull: true,
-      type: DataTypes.STRING,
+      type: DataTypes.UUID,
       references: {
         model: 'Clients',
         key: 'id',
       },
     },
-
     storeId: {
       allowNull: false,
       type: DataTypes.UUID,

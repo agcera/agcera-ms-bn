@@ -15,7 +15,7 @@ export const findQueryGenerators = (
 
   skip && (findQuery['offset'] = skip);
   limit && (findQuery['limit'] = limit);
-  sort && (findQuery['order'] = Object.entries(sort).map(([key, value]) => [key, value]));
+  sort && (findQuery['order'] = Object.entries(sort).map(([key, value]) => [...key.split('.'), value]));
 
   if (additionalData) {
     Object.assign(findQuery, additionalData);

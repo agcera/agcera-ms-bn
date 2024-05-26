@@ -15,15 +15,8 @@ import Variation from '@database/models/variation';
 export default class ProductsController extends BaseController {
   // get all products
   async getAllProducts(req: ExtendedRequest, res: Response): Promise<Response> {
-    const { search, limit, skip, sort } = req.query;
-
     const isAdmin = req.user?.role === UserRolesEnum.ADMIN;
-    const { products, total } = await ProductServices.getAllProducts(
-      { search, limit, skip, sort },
-      undefined,
-      undefined,
-      isAdmin
-    );
+    const { products, total } = await ProductServices.getAllProducts(req.query, undefined, undefined, isAdmin);
 
     return res.status(200).json({
       status: 'success',
