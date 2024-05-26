@@ -197,6 +197,7 @@ export const generateReport = ({
                 <tr class="bg-gray-50 *:p-2 border-b border-blue_gray-A700">
                   <td align="left">${productName}</td>
                   <td align="right">${remainingProducts[productName]}</td>
+                  
                 </tr>
               `
             )

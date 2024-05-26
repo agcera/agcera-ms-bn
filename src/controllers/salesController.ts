@@ -80,7 +80,7 @@ class SalesController extends BaseController {
 
   async createSale(req: ExtendedRequest, res: Response): Promise<Response | undefined> {
     const user = req.user!;
-    const { variations, paymentMethod, storeId, clientName, phone, isMember } = req.body;
+    const { variations, paymentMethod, storeId, clientName, phone, isMember, doneOn } = req.body;
 
     // Check if the user is allowed to create a sale in the store
     if (user.role === 'keeper' && user.storeId !== storeId) {
@@ -152,7 +152,7 @@ class SalesController extends BaseController {
     }
 
     // Create the sale
-    const sale = await SaleServices.createSale(variations, paymentMethod, client.id, storeId);
+    const sale = await SaleServices.createSale(variations, paymentMethod, client.id, storeId, doneOn);
 
     // Update the quantity of the products in the store
     const productsIds = Object.keys(product_removed);

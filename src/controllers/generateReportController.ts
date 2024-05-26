@@ -65,7 +65,7 @@ class GenerateReportController extends BaseController {
       }
     );
 
-    // cash distribution
+    //
 
     const { transactions } = await TransactionServices.getAllTransactions(
       {},

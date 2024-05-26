@@ -3,6 +3,7 @@ import { ExtendedRequest } from '@src/types/common.types';
 import { Request, type NextFunction, type Response } from 'express';
 import { BaseMiddleware } from '.';
 import { verifyToken } from '../utils/jwtFunctions';
+import Store from '@database/models/store';
 
 export class AuthMiddleware extends BaseMiddleware {
   requiredRole: string | Array<string>;
@@ -54,6 +55,25 @@ export class AuthMiddleware extends BaseMiddleware {
         status: 'fail',
         message: 'Unauthorized. Please Login!',
       });
+    }
+
+    // check if the user is active
+    if (!user.isActive) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Your account has been deactivated. Please contact the admin!',
+      });
+    }
+
+    // check if the store is active
+    if (user.storeId) {
+      const store = await Store.findByPk(user.storeId);
+      if (!store?.isActive && user.role !== 'admin') {
+        return res.status(401).json({
+          status: 'fail',
+          message: 'Your store has been deactivated. Please contact the admin!',
+        });
+      }
     }
 
     // If only checking if the user is logged in

@@ -18,4 +18,5 @@ export const createSaleSchema = Joi.object({
   clientName: Joi.string().required(),
   isMember: Joi.boolean().default(false),
   storeId: Joi.string().uuid().required(),
+  doneOn: Joi.date(),
 });

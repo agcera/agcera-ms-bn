@@ -128,7 +128,7 @@ class UsersController extends BaseController {
     // check if the storeof the user is active
     const storeId = user.storeId;
     const store = await Store.findByPk(storeId!);
-    if (store?.isActive === false) {
+    if (store?.isActive === false && user.role !== 'admin') {
       return res.status(400).json({
         status: 'fail',
         message: 'Your store has been disactivated, please contact the admin!',
