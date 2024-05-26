@@ -47,9 +47,10 @@ class SaleServices {
     variations: { [key: string]: number },
     paymentMethod: PaymentMethodsEnum,
     clientId: string,
-    storeId: string
+    storeId: string,
+    doneOne?: Date
   ) {
-    const sale = await Sale.create({ paymentMethod, clientId, storeId });
+    const sale = await Sale.create({ paymentMethod, clientId, storeId, createdAt: doneOne ? doneOne : new Date() });
 
     if (!sale) {
       throw new Error('Error creating sale');
