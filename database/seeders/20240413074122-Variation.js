@@ -12,7 +12,7 @@ module.exports = {
           number: 1,
           costPrice: 100,
           sellingPrice: 200,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           productId: '123e4567-e89b-12d3-a456-426614174001',
         },
         {
@@ -21,7 +21,7 @@ module.exports = {
           number: 1,
           costPrice: 200,
           sellingPrice: 400,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           productId: '123e4567-e89b-12d3-a456-426614174002',
         },
         {
@@ -30,7 +30,7 @@ module.exports = {
           number: 1,
           costPrice: 300,
           sellingPrice: 600,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           productId: '123e4567-e89b-12d3-a456-426614174003',
         },
 
@@ -42,7 +42,7 @@ module.exports = {
           number: 1,
           costPrice: 2450,
           sellingPrice: 2859,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
         },
         {
@@ -51,7 +51,7 @@ module.exports = {
           number: 2,
           costPrice: 6300,
           sellingPrice: 7500,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
         },
         {
@@ -60,7 +60,7 @@ module.exports = {
           number: 8,
           costPrice: 24150,
           sellingPrice: 28500,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
         },
         {
@@ -69,7 +69,7 @@ module.exports = {
           number: 24,
           costPrice: 72450,
           sellingPrice: 85000,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
 
         }

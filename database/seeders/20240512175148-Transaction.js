@@ -14,7 +14,7 @@ module.exports = {
           storeId: '143e4667-a81d-12d3-c356-469311174300',
           userId: '8215a8ea-cf39-4037-81e6-86f6b439dcf4',
           type: 'EXPENSE',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
 
@@ -26,7 +26,7 @@ module.exports = {
           description: 'Initial deposit',
           userId: '8215a8ea-cf39-4037-81e6-86f6b439dcf4',
           type: 'INCOME',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
 
@@ -38,7 +38,7 @@ module.exports = {
           description: 'Initial deposit',
           userId: '8215a8ea-cf39-4037-81e6-86f6b439dcf4',
           type: 'INCOME',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
       ],
       {}

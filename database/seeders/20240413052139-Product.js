@@ -12,7 +12,7 @@ module.exports = {
           name: 'UnoProducto',
           description: 'Producto de prueba en la base de datos',
           type: 'STANDARD',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // duo producto
         {
@@ -20,7 +20,7 @@ module.exports = {
           name: 'DuoProducto',
           description: 'Producto de prueba en la base de datos',
           type: 'STANDARD',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // tres producto
         {
@@ -28,7 +28,7 @@ module.exports = {
           name: 'TresProducto',
           description: 'Producto de prueba en la base de datos',
           type: 'STANDARD',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // agcera
         {
@@ -36,7 +36,7 @@ module.exports = {
           name: 'Agcera',
           description: 'Producto de prueba en la base de datos',
           type: 'SPECIAL',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         }
 
       ],

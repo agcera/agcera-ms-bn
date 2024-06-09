@@ -11,7 +11,7 @@ module.exports = {
           paymentMethod: 'CASH',
           clientId: 'a90c1a62-5e1d-4bf7-b902-8d74c89644d9',
           storeId: '143e4667-a81d-12d3-c356-469311174301',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
         // sale for store 3 on product Agcera
@@ -20,7 +20,7 @@ module.exports = {
           paymentMethod: 'CASH',
           clientId: 'a90c1a62-5e1d-4bf7-b902-8d74c89644d4',
           storeId: '143e4667-a81d-12d3-c356-469311174301',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
 
@@ -31,7 +31,7 @@ module.exports = {
           paymentMethod: 'CASH',
           clientId: 'a90c1a62-5e1d-4bf7-b902-8d74c89644d4',
           storeId: '143e4667-a81d-12d3-c356-469311174302',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
         {
@@ -39,7 +39,7 @@ module.exports = {
           paymentMethod: 'P.O.S',
           clientId: 'a90c1a62-5e1d-4bf7-b902-8d74c89644d3',
           storeId: '143e4667-a81d-12d3-c356-469311174302',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
       ],
       {}

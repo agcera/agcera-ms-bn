@@ -15,7 +15,7 @@ module.exports = {
           storeId: '143e4667-a81d-12d3-c356-469311174300',
           phone: '+123456789023',
           role: 'admin',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         {
           id: '8215a8ea-cf39-4037-81e6-86f6b439dcf5',
@@ -25,7 +25,7 @@ module.exports = {
           storeId: '143e4667-a81d-12d3-c356-469311174301',
           phone: '+123456789024',
           role: 'keeper',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         {
           id: '8215a8ea-cf39-4037-81e6-86f6b439dcf6',
@@ -35,7 +35,7 @@ module.exports = {
           storeId: '143e4667-a81d-12d3-c356-469311174302',
           phone: '+123456789025',
           role: 'keeper',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         {
           id: '8215a8ea-cf39-4037-81e6-86f6b439dcf7',
@@ -45,7 +45,7 @@ module.exports = {
           storeId: '143e4667-a81d-12d3-c356-469311174301',
           phone: '+123456789026',
           role: 'user',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
       ],
       {}

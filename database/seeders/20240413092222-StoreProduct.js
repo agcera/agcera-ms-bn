@@ -14,7 +14,7 @@ module.exports = {
           quantity: 100,
           storeId: '143e4667-a81d-12d3-c356-469311174300',
           productId: '123e4567-e89b-12d3-a456-426614174001',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // give it duoProducto
         {
@@ -22,7 +22,7 @@ module.exports = {
           quantity: 100,
           storeId: '143e4667-a81d-12d3-c356-469311174300',
           productId: '123e4567-e89b-12d3-a456-426614174002',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // give it tresProducto
         {
@@ -30,7 +30,7 @@ module.exports = {
           quantity: 100,
           storeId: '143e4667-a81d-12d3-c356-469311174300',
           productId: '123e4567-e89b-12d3-a456-426614174003',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // give it agcera
         {
@@ -38,7 +38,7 @@ module.exports = {
           quantity: 150,
           storeId: '143e4667-a81d-12d3-c356-469311174300',
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
         // GIVE PRODUCTS TO STORE 2
@@ -48,7 +48,7 @@ module.exports = {
           quantity: 50,
           storeId: '143e4667-a81d-12d3-c356-469311174301',
           productId: '123e4567-e89b-12d3-a456-426614174001',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // give it duoProducto
         {
@@ -56,7 +56,7 @@ module.exports = {
           quantity: 50,
           storeId: '143e4667-a81d-12d3-c356-469311174301',
           productId: '123e4567-e89b-12d3-a456-426614174002',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // give it tresProducto
         {
@@ -64,7 +64,7 @@ module.exports = {
           quantity: 10,
           storeId: '143e4667-a81d-12d3-c356-469311174301',
           productId: '123e4567-e89b-12d3-a456-426614174003',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // give it agcera
         {
@@ -72,7 +72,7 @@ module.exports = {
           quantity: 50,
           storeId: '143e4667-a81d-12d3-c356-469311174301',
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
 
@@ -84,7 +84,7 @@ module.exports = {
           quantity: 50,
           storeId: '143e4667-a81d-12d3-c356-469311174302',
           productId: '123e4567-e89b-12d3-a456-426614174001',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // give it duoProducto
         {
@@ -92,7 +92,7 @@ module.exports = {
           quantity: 50,
           storeId: '143e4667-a81d-12d3-c356-469311174302',
           productId: '123e4567-e89b-12d3-a456-426614174002',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // give it tresProducto
         {
@@ -100,7 +100,7 @@ module.exports = {
           quantity: 10,
           storeId: '143e4667-a81d-12d3-c356-469311174302',
           productId: '123e4567-e89b-12d3-a456-426614174003',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // give it agcera
         {
@@ -108,7 +108,7 @@ module.exports = {
           quantity: 10,
           storeId: '143e4667-a81d-12d3-c356-469311174302',
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
       ],

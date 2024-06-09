@@ -3,7 +3,7 @@ import SaleServices from '@src/services/sale.services';
 import StoreServices from '@src/services/store.services';
 import TransactionServices from '@src/services/transaction.services';
 import { ExtendedRequest } from '@src/types/common.types';
-import { generateFirstDate, generateLastDate, generateReport } from '@src/utils/generators';
+import { generateReport } from '@src/utils/generators';
 import { reportSchema } from '@src/validation/report.validation';
 import { Response } from 'express';
 import puppeteer from 'puppeteer';
@@ -25,8 +25,10 @@ class GenerateReportController extends BaseController {
 
     const { from: unformattedFrom, to: unformattedTo, storeId: queryStoreId } = req.query;
 
-    const from = generateFirstDate(new Date(unformattedFrom));
-    const to = generateLastDate(new Date(unformattedTo));
+    const from = new Date(unformattedFrom);
+    // const from = generateFirstDate(new Date(unformattedFrom));
+    const to = new Date(unformattedTo);
+    // const to = generateLastDate(new Date(unformattedTo));
     const storeId = user.role === UserRolesEnum.KEEPER ? user.storeId : queryStoreId;
 
     let store = null;
@@ -46,26 +48,28 @@ class GenerateReportController extends BaseController {
         const { stores } = product;
         stores?.forEach((storeProduct) => {
           if (storeProduct.quantity > 0) {
-            acc[product.name] = (acc[product.name] || 0) + storeProduct.quantity;
+            acc[product.name] = {
+              count: (acc[product.name]?.count || 0) + Number(storeProduct.quantity),
+              price: (acc[product.name]?.price || 0) + Number(product.variations[0].sellingPrice),
+            };
           }
         });
         return acc;
       },
-      {} as { [key: string]: number }
+      {} as { [key: string]: { count: number; price: number } }
     );
 
     const { sales } = await SaleServices.getAllSales(
       {},
       {
         ...(storeId && { storeId }),
+        refundedAt: null,
         createdAt: {
           [Op.gte]: from.toISOString(),
           [Op.lte]: to.toISOString(),
         },
       }
     );
-
-    //
 
     const { transactions } = await TransactionServices.getAllTransactions(
       {},
@@ -91,13 +95,13 @@ class GenerateReportController extends BaseController {
       sales,
       transactions,
     });
-    await page.setContent(htmlContent, { timeout: 0 });
+    await page.setContent(htmlContent);
 
     // Generate PDF
-    const pdfBuffer = await page.pdf();
+    const pdfBuffer = await page.pdf({ printBackground: true });
     await browser.close();
 
-    res.setHeader('Content-Disposition', 'filename="report11111.pdf"');
+    res.setHeader('Content-Disposition', 'filename="report.pdf"');
     res.setHeader('Content-Type', 'application/pdf');
     res.send(pdfBuffer);
   }

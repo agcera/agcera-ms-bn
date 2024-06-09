@@ -22,6 +22,7 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(Express.static('public'));
 
 app.get('/', (_req, res) => {
   res.send('welcome to agcera, got to /api/v1 to access the latest API documentation');

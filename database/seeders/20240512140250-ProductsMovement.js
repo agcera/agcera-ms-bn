@@ -14,7 +14,7 @@ module.exports = {
           from: '143e4667-a81d-12d3-c356-469311174300',
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
           userId: '8215a8ea-cf39-4037-81e6-86f6b439dcf4',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
 
@@ -26,7 +26,7 @@ module.exports = {
           to: '143e4667-a81d-12d3-c356-469311174301',
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
           userId: '8215a8ea-cf39-4037-81e6-86f6b439dcf4',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
 
@@ -38,7 +38,7 @@ module.exports = {
           to: '143e4667-a81d-12d3-c356-469311174302',
           productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
           userId: '8215a8ea-cf39-4037-81e6-86f6b439dcf4',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
       ],
       {}

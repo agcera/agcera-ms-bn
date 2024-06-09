@@ -135,7 +135,7 @@ module.exports = {
           }
           }),
           table: 'store',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
 
@@ -208,7 +208,7 @@ module.exports = {
             "phone": "+21341123423"
           }),
           table: 'sale',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
 
 
@@ -244,7 +244,7 @@ module.exports = {
             "phone": "+21341123423"
           }),
           table: 'user',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
         // product 1
         {
@@ -275,7 +275,7 @@ module.exports = {
             "phone": "+21341123423"
           }),
           table: 'product',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         },
       ],
       {}

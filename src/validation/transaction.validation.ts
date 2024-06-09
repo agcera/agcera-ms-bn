@@ -3,7 +3,7 @@ import joi from 'joi';
 
 export const createTransactionSchema = joi.object({
   amount: joi.number().required(),
-  description: joi.string().required(),
+  description: joi.string().max(255).required(),
   type: joi
     .string()
     .valid(...Object.values(TransactionTypesEnum))
