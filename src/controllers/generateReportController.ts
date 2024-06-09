@@ -83,7 +83,9 @@ class GenerateReportController extends BaseController {
     );
 
     // Open a new page
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
     const page = await browser.newPage();
 
     // Set the HTML content
