@@ -10,7 +10,7 @@
     "db:rollback": "sequelize db:migrate:undo:all",
     "db:reset": "npm run db:rollback && npm run db:migrate  && npm run db:seed && npm run dev",
     "build": "tsc && tsc-alias",
-    "start": "(node build/server.js >> ../bn-logs.txt) &>> ../bn-errors.txt &",
+    "start": "(node build/server.js >> ../bn-logs.txt 2>> ../bn-errors.txt) &",
     "build:docker": "make build_image",
     "lint": "eslint . --fix",
     "format": "prettier --write ."
