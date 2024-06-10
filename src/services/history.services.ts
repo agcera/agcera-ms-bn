@@ -31,6 +31,8 @@ class HistoryServices {
       findQueryGenerators(ProductsMovement.getAttributes(), queryData, { where, include })
     );
 
+    // const {count, rows} = await ProductsMovement.findAndCountAll(where, include)
+
     return { total: count, movements: rows };
   }
 }

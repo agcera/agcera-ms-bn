@@ -81,7 +81,7 @@ class StoresController extends BaseController {
     const { role, storeId } = req.user!;
     const { id } = req.params;
 
-    const store = await StoreServices.getOneStore({ id });
+    const store = await StoreServices.getOneStoreWithExpired({ id });
 
     if (['keeper', 'user'].includes(role) && storeId !== id) {
       return res.status(403).json({
@@ -89,6 +89,8 @@ class StoresController extends BaseController {
         message: 'You are not allowed to view this store info',
       });
     }
+
+    console.log(store);
 
     if (!store) {
       return res.status(404).json({
@@ -305,7 +307,7 @@ class StoresController extends BaseController {
       });
     }
 
-    const store = await StoreServices.getOneStore({ id: storeId });
+    const store = await StoreServices.getOneStoreWithExpired({ id: storeId });
     if (!store) {
       return res.status(404).json({
         status: 'fail',
@@ -323,7 +325,12 @@ class StoresController extends BaseController {
         include: [{ association: 'store', attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] } }],
       });
     }
-    const { products, total } = await ProductServices.getAllProducts(req.query, {}, includes);
+    const { products, total } = await ProductServices.getAllProducts(
+      req.query,
+      {},
+      includes,
+      user.role === UserRolesEnum.ADMIN
+    );
 
     return res.status(200).json({
       status: 'success',
@@ -342,7 +349,7 @@ class StoresController extends BaseController {
       });
     }
 
-    const store = await StoreServices.getOneStore({ id: storeId });
+    const store = await StoreServices.getOneStoreWithExpired({ id: storeId });
     if (!store) {
       return res.status(404).json({
         status: 'fail',

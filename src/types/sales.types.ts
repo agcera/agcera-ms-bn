@@ -22,4 +22,5 @@ export interface GetAllRequestQuery<
   limit?: number;
   sort?: Sort;
   role?: [UserRolesEnum];
+  storeId?: string;
 }

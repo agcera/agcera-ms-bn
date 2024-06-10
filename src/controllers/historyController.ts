@@ -1,7 +1,7 @@
 import HistoryServices from '@src/services/history.services';
 import { ExtendedRequest } from '@src/types/common.types';
 import { Response } from 'express';
-import { IncludeOptions, WhereOptions } from 'sequelize';
+import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 import Deleted from '@database/models/deleted';
 
@@ -79,20 +79,24 @@ class HistoryController extends BaseController {
   // MOVEMENTS
   // get all movements
   async getProductsMovements(req: ExtendedRequest, res: Response) {
-    const { role: userRole, storeId } = req.user!;
+    const { role: userRole } = req.user!;
 
+    const { storeId } = req.query;
     const { search, limit, skip, sort } = req.query;
 
-    const WhereOptions: WhereOptions = {};
+    // get the store needed to fromt he query
+    console.log(storeId);
+
+    // add the where option in all the stores where from or to is contains the storeId
+    const WhereOptions: WhereOptions = storeId ? { [Op.or]: [{ to: storeId }, { from: storeId }] } : {};
+
     const include: IncludeOptions[] = [];
 
-    switch (userRole) {
-      case 'keeper':
-        WhereOptions['to'] = storeId;
-        WhereOptions['from'] = storeId;
-        break;
-      case 'admin':
-        break;
+    if (userRole != 'admin') {
+      return res.status(400).json({
+        status: 400,
+        message: 'you are not authorized to view this',
+      });
     }
 
     include.push(
@@ -115,7 +119,7 @@ class HistoryController extends BaseController {
     );
 
     const { total, movements } = await HistoryServices.getAllMovemets(
-      { search, limit, skip, sort },
+      { search, limit, skip, sort, storeId },
       WhereOptions,
       include
     );

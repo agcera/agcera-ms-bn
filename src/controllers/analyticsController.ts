@@ -24,6 +24,7 @@ class AnalyticsController extends BaseController {
         message: error.message,
       });
     }
+
     req.query = value;
     const { from: unformattedFrom, to: unformattedTo, storeId: queryStoreId } = req.query;
 
