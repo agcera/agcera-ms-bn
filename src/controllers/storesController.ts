@@ -451,6 +451,14 @@ class StoresController extends BaseController {
 
     // decrement the products of the source store if we are not moving products from main to main
     if (mainMovement) {
+      await ProductsMovement.create({
+        quantity,
+        productId,
+        userId: req.user?.id,
+        from: fromStore?.id,
+        to: toStore?.id,
+      });
+
       return res.status(201).json({
         status: 201,
         message: `Product added to ${toStore?.name} from ${fromStore?.name} successfully`,
