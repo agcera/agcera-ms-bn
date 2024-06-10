@@ -95,38 +95,36 @@ export const generateReport = ({
   const paymentsObjRows: { [paymentMethod: string]: { count: number; amount: number } } = {};
   let totalSalesProfitLoss: number = 0;
   let totalRowsSellingPrice: number = 0;
-  const salesRows = isAdmin
-    ? sales.map((sale) => {
-        const store = sale.store;
-        const storeVariations = sale.variations;
-        const { totalProducts, totalCostPrice, totalSellingPrice } = storeVariations.reduce(
-          (acc, storeVariation) => {
-            acc.totalProducts += (storeVariation.quantity || 1) * storeVariation.variation.number;
-            acc.totalCostPrice +=
-              (storeVariation.quantity || 1) * storeVariation.variation.number * storeVariation.variation.costPrice;
-            acc.totalSellingPrice +=
-              (storeVariation.quantity || 1) * storeVariation.variation.number * storeVariation.variation.sellingPrice;
-            return acc;
-          },
-          { totalProducts: 0, totalCostPrice: 0, totalSellingPrice: 0 }
-        );
-        paymentsObjRows[sale.paymentMethod] = {
-          count: (paymentsObjRows[sale.paymentMethod]?.count || 0) + 1,
-          amount: (paymentsObjRows[sale.paymentMethod]?.amount || 0) + totalSellingPrice,
-        };
-        const profitLoss = totalSellingPrice - totalCostPrice;
-        totalRowsSellingPrice += totalSellingPrice;
-        totalSalesProfitLoss += profitLoss;
-        return {
-          doneAt: new Date(sale.createdAt).toDateString(),
-          store: store.name,
-          totalProducts,
-          totalCostPrice,
-          totalSellingPrice,
-          profitLoss,
-        };
-      })
-    : [];
+  const salesRows = sales.map((sale) => {
+    const store = sale.store;
+    const storeVariations = sale.variations;
+    const { totalProducts, totalCostPrice, totalSellingPrice } = storeVariations.reduce(
+      (acc, storeVariation) => {
+        acc.totalProducts += (storeVariation.quantity || 1) * storeVariation.variation.number;
+        acc.totalCostPrice +=
+          (storeVariation.quantity || 1) * storeVariation.variation.number * storeVariation.variation.costPrice;
+        acc.totalSellingPrice +=
+          (storeVariation.quantity || 1) * storeVariation.variation.number * storeVariation.variation.sellingPrice;
+        return acc;
+      },
+      { totalProducts: 0, totalCostPrice: 0, totalSellingPrice: 0 }
+    );
+    paymentsObjRows[sale.paymentMethod] = {
+      count: (paymentsObjRows[sale.paymentMethod]?.count || 0) + 1,
+      amount: (paymentsObjRows[sale.paymentMethod]?.amount || 0) + totalSellingPrice,
+    };
+    const profitLoss = totalSellingPrice - totalCostPrice;
+    totalRowsSellingPrice += totalSellingPrice;
+    totalSalesProfitLoss += profitLoss;
+    return {
+      doneAt: new Date(sale.createdAt).toDateString(),
+      store: store.name,
+      totalProducts,
+      totalCostPrice,
+      totalSellingPrice,
+      profitLoss,
+    };
+  });
 
   let totalTransactionsProfitLoss: number = 0;
   let totalTransactionsIncomes: number = 0;
@@ -175,7 +173,8 @@ export const generateReport = ({
 
   const netProfitLoss = totalSalesProfitLoss + totalTransactionsProfitLoss;
 
-  return `<!doctype html>
+  return (
+    `<!doctype html>
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
@@ -278,8 +277,9 @@ export const generateReport = ({
         <div class="bg-gray-100 flex items-center justify-between px-2 py-3">
           <p>Total Payments</p>
             <p>${totalRowsSellingPrice} MZN</p>
-        </div>` + isAdmin
-    ? `
+        </div>` +
+    (isAdmin
+      ? `
         <!-- Sales report section -->
         <div class="bg-green-500 flex items-center justify-between px-2 py-3 font-bold mt-2">
           <p>Sales Report</p>
@@ -324,8 +324,8 @@ export const generateReport = ({
               : `<p>${totalSalesProfitLoss.toFixed(2)} MZN</p>`
           }
         </div>`
-    : '' +
-        `
+      : '') +
+    `
         <!-- Transactions report -->
         <div class="bg-green-500 flex items-center justify-between px-2 py-3 mt-2 font-bold">
           <p>Transactions Report</p>
@@ -423,7 +423,7 @@ export const generateReport = ({
               : `<p>${totalTransactionsProfitLoss} MZN</p>`
           }
         </div>` +
-        isAdmin
+    (isAdmin
       ? `
         <div class="bg-gray-100 flex items-center justify-between px-2 py-3 border-t-2 border-green-600 mt-2">
           <p>${netProfitLoss < 0 ? 'Net Loss' : 'Net Profit'}</p>
@@ -433,10 +433,11 @@ export const generateReport = ({
               : `<p>${netProfitLoss.toFixed(2)} MZN</p>`
           }
         </div>`
-      : '' +
-        `
+      : '') +
+    `
       </div>
     </body>
   </html>
-  `;
+  `
+  );
 };
