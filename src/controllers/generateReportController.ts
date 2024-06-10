@@ -96,6 +96,7 @@ class GenerateReportController extends BaseController {
       remainingProducts,
       sales,
       transactions,
+      isAdmin: user.role === UserRolesEnum.ADMIN,
     });
     await page.setContent(htmlContent);
 
