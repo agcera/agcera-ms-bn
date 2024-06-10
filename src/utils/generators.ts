@@ -82,6 +82,7 @@ export const generateReport = ({
   remainingProducts,
   sales,
   transactions,
+  isAdmin,
 }: {
   from: Date;
   to: Date;
@@ -89,40 +90,43 @@ export const generateReport = ({
   remainingProducts: { [key: string]: { count: number; price: number } };
   sales: Sale[];
   transactions: Transaction[];
+  isAdmin: boolean;
 }) => {
   const paymentsObjRows: { [paymentMethod: string]: { count: number; amount: number } } = {};
   let totalSalesProfitLoss: number = 0;
   let totalRowsSellingPrice: number = 0;
-  const salesRows = sales.map((sale) => {
-    const store = sale.store;
-    const storeVariations = sale.variations;
-    const { totalProducts, totalCostPrice, totalSellingPrice } = storeVariations.reduce(
-      (acc, storeVariation) => {
-        acc.totalProducts += (storeVariation.quantity || 1) * storeVariation.variation.number;
-        acc.totalCostPrice +=
-          (storeVariation.quantity || 1) * storeVariation.variation.number * storeVariation.variation.costPrice;
-        acc.totalSellingPrice +=
-          (storeVariation.quantity || 1) * storeVariation.variation.number * storeVariation.variation.sellingPrice;
-        return acc;
-      },
-      { totalProducts: 0, totalCostPrice: 0, totalSellingPrice: 0 }
-    );
-    paymentsObjRows[sale.paymentMethod] = {
-      count: (paymentsObjRows[sale.paymentMethod]?.count || 0) + 1,
-      amount: (paymentsObjRows[sale.paymentMethod]?.amount || 0) + totalSellingPrice,
-    };
-    const profitLoss = totalSellingPrice - totalCostPrice;
-    totalRowsSellingPrice += totalSellingPrice;
-    totalSalesProfitLoss += profitLoss;
-    return {
-      doneAt: new Date(sale.createdAt).toDateString(),
-      store: store.name,
-      totalProducts,
-      totalCostPrice,
-      totalSellingPrice,
-      profitLoss,
-    };
-  });
+  const salesRows = isAdmin
+    ? sales.map((sale) => {
+        const store = sale.store;
+        const storeVariations = sale.variations;
+        const { totalProducts, totalCostPrice, totalSellingPrice } = storeVariations.reduce(
+          (acc, storeVariation) => {
+            acc.totalProducts += (storeVariation.quantity || 1) * storeVariation.variation.number;
+            acc.totalCostPrice +=
+              (storeVariation.quantity || 1) * storeVariation.variation.number * storeVariation.variation.costPrice;
+            acc.totalSellingPrice +=
+              (storeVariation.quantity || 1) * storeVariation.variation.number * storeVariation.variation.sellingPrice;
+            return acc;
+          },
+          { totalProducts: 0, totalCostPrice: 0, totalSellingPrice: 0 }
+        );
+        paymentsObjRows[sale.paymentMethod] = {
+          count: (paymentsObjRows[sale.paymentMethod]?.count || 0) + 1,
+          amount: (paymentsObjRows[sale.paymentMethod]?.amount || 0) + totalSellingPrice,
+        };
+        const profitLoss = totalSellingPrice - totalCostPrice;
+        totalRowsSellingPrice += totalSellingPrice;
+        totalSalesProfitLoss += profitLoss;
+        return {
+          doneAt: new Date(sale.createdAt).toDateString(),
+          store: store.name,
+          totalProducts,
+          totalCostPrice,
+          totalSellingPrice,
+          profitLoss,
+        };
+      })
+    : [];
 
   let totalTransactionsProfitLoss: number = 0;
   let totalTransactionsIncomes: number = 0;
@@ -213,14 +217,14 @@ export const generateReport = ({
 
         <!-- Remaining products report -->
         <div class="bg-green-500 flex items-center justify-between px-2 py-3 mt-2 font-bold">
-          <p>Remaining products report</p>
+          <p>Remaining products report on ${new Date().toDateString()}</p>
         </div>
         <table class="w-full">
           <thead>
             <tr class="bg-green-300 *:p-2">
               <th align="left">Product name</th>
               <th align="center">Products remaining</th>
-              <th align="right">Total Price</th>
+              <th align="right">Total selling price</th>
             </tr>
           </thead>
           <tbody>
@@ -237,7 +241,7 @@ export const generateReport = ({
             )
             .join(' ')}
             <tr class="bg-gray-100 *:py-3">
-              <td align="left" class="pl-2">Total Remaining</td>
+              <td align="left" class="pl-2">Total selling price</td>
               <td align="center" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.count, 0)}</td>
               <td align="right" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.price, 0)} MZN</td>
             </tr>
@@ -274,8 +278,8 @@ export const generateReport = ({
         <div class="bg-gray-100 flex items-center justify-between px-2 py-3">
           <p>Total Payments</p>
             <p>${totalRowsSellingPrice} MZN</p>
-        </div>
-
+        </div>` + isAdmin
+    ? `
         <!-- Sales report section -->
         <div class="bg-green-500 flex items-center justify-between px-2 py-3 font-bold mt-2">
           <p>Sales Report</p>
@@ -316,11 +320,12 @@ export const generateReport = ({
           <p>Total Profit/Loss</p>
           ${
             totalSalesProfitLoss < 0
-              ? `<p style="color: lightcoral">(${totalSalesProfitLoss} MZN)</p>`
-              : `<p>${totalSalesProfitLoss} MZN</p>`
+              ? `<p style="color: lightcoral">(${totalSalesProfitLoss.toFixed(2)} MZN)</p>`
+              : `<p>${totalSalesProfitLoss.toFixed(2)} MZN</p>`
           }
-        </div>
-
+        </div>`
+    : '' +
+        `
         <!-- Transactions report -->
         <div class="bg-green-500 flex items-center justify-between px-2 py-3 mt-2 font-bold">
           <p>Transactions Report</p>
@@ -359,7 +364,7 @@ export const generateReport = ({
           </tbody>
         </table>
         <div class="bg-gray-100 flex items-center justify-between px-2 py-3">
-          <p>Total Profit</p>
+          <p>Total income</p>
           ${
             totalTransactionsIncomes < 0
               ? `<p style="color: lightcoral">(${totalTransactionsIncomes} MZN)</p>`
@@ -401,7 +406,7 @@ export const generateReport = ({
           </tbody>
         </table>
         <div class="bg-gray-100 flex items-center justify-between px-2 py-3">
-          <p>Total Loss</p>
+          <p>Total expenses</p>
           ${
             totalTransactionsExpenses < 0
               ? `<p style="color: lightcoral">(${totalTransactionsExpenses} MZN)</p>`
@@ -417,15 +422,19 @@ export const generateReport = ({
               ? `<p style="color: lightcoral">(${totalTransactionsProfitLoss} MZN)</p>`
               : `<p>${totalTransactionsProfitLoss} MZN</p>`
           }
-        </div>
+        </div>` +
+        isAdmin
+      ? `
         <div class="bg-gray-100 flex items-center justify-between px-2 py-3 border-t-2 border-green-600 mt-2">
           <p>${netProfitLoss < 0 ? 'Net Loss' : 'Net Profit'}</p>
           ${
             netProfitLoss < 0
-              ? `<p style="color: lightcoral">(${netProfitLoss} MZN)</p>`
-              : `<p>${netProfitLoss} MZN</p>`
+              ? `<p style="color: lightcoral">(${netProfitLoss.toFixed(2)} MZN)</p>`
+              : `<p>${netProfitLoss.toFixed(2)} MZN</p>`
           }
-        </div>
+        </div>`
+      : '' +
+        `
       </div>
     </body>
   </html>
