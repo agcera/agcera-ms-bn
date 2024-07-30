@@ -90,8 +90,6 @@ class StoresController extends BaseController {
       });
     }
 
-    console.log(store);
-
     if (!store) {
       return res.status(404).json({
         status: 'fail',

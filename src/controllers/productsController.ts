@@ -179,7 +179,6 @@ export default class ProductsController extends BaseController {
 
       while (variations.length > 0) {
         const variation = variations[0];
-        console.log('variation ', variation);
         await VariationServices.updateOrCreateVariation(id, variation);
         variations.shift();
       }

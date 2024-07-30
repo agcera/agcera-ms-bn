@@ -14,8 +14,9 @@ import CleintServices from '@src/services/client.services';
 class SalesController extends BaseController {
   async getAllSales(req: ExtendedRequest, res: Response): Promise<Response> {
     const { role: userRole, id: userId } = req.user!;
+    const { storeId } = req.query;
 
-    const where: WhereOptions = {};
+    const where: WhereOptions = storeId ? { storeId } : {};
     const include: IncludeOptions[] = [];
 
     switch (userRole) {
