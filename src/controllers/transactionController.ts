@@ -36,9 +36,16 @@ class TransactionController extends BaseController {
   async createTransaction(req: ExtendedRequest, res: Response): Promise<Response | undefined> {
     const { id: userId, storeId } = req.user!;
 
-    const { type, amount, description } = req.body;
+    const { type, amount, description, paymentMethod } = req.body;
 
-    const transaction = await TransactionServices.createTransaction(storeId!, userId, type, amount, description);
+    const transaction = await TransactionServices.createTransaction(
+      storeId!,
+      userId,
+      type,
+      amount,
+      description,
+      paymentMethod
+    );
 
     if (!transaction)
       return res.status(500).json({

@@ -1,3 +1,4 @@
+import { PaymentMethodsEnum } from '@database/models/sale';
 import Transaction from '@database/models/transaction';
 import { GetAllRequestQuery } from '@src/types/sales.types';
 import { TransactionTypesEnum } from '@src/types/transaction.types';
@@ -20,10 +21,19 @@ class TransactionServices {
     userId: string,
     type: TransactionTypesEnum,
     amount: number,
-    description: string
+    description: string,
+    paymentMethod: PaymentMethodsEnum
   ) {
     // create transaction
-    const transaction = await Transaction.create({ storeId, userId, type, amount, description });
+    const transaction = await Transaction.create({
+      storeId,
+      userId,
+      type,
+      amount,
+      description,
+      paymentMethod,
+      checked: false,
+    });
 
     return transaction.reload({ include: [this.DEFAULT_USER_INCLUDE, this.STORE_INCLUDE] });
   }

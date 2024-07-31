@@ -11,6 +11,7 @@ import User from './user';
 import Store from './store';
 import sequelize from '@database/connection';
 import { TransactionTypesEnum } from '@src/types/transaction.types';
+import { PaymentMethodsEnum } from './sale';
 
 class Transaction extends Model<InferAttributes<Transaction>, InferCreationAttributes<Transaction>> {
   declare readonly id: CreationOptional<string>;
@@ -19,9 +20,11 @@ class Transaction extends Model<InferAttributes<Transaction>, InferCreationAttri
   declare userId: ForeignKey<User['id'] | null> | null;
   declare storeId: ForeignKey<Store['id']>;
   declare type: TransactionTypesEnum;
+  declare checked: boolean;
 
   declare store: NonAttribute<Store>;
   declare user: NonAttribute<User | null> | null;
+  declare paymentMethod: PaymentMethodsEnum;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | undefined;
@@ -52,6 +55,15 @@ Transaction.init(
         model: 'Stores',
         key: 'id',
       },
+    },
+    paymentMethod: {
+      allowNull: false,
+      type: DataTypes.ENUM(...Object.values(PaymentMethodsEnum)),
+    },
+    checked: {
+      allowNull: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
     userId: {
       allowNull: true,
