@@ -29,6 +29,7 @@ class Sale extends Model<InferAttributes<Sale>, InferCreationAttributes<Sale>> {
   // The client who made the sale, if he is not registered in the system use a phone number.
   declare clientId: ForeignKey<Client['id']>;
   declare storeId: ForeignKey<Store['id']>;
+  declare checkedAt: Date | null;
 
   declare store: NonAttribute<Store>;
   declare variations: NonAttribute<SaleProduct[]>;
@@ -87,6 +88,7 @@ Sale.init(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    checkedAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
     refundedAt: DataTypes.DATE,

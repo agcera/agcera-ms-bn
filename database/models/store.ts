@@ -20,6 +20,7 @@ class Store extends Model<InferAttributes<Store>, InferCreationAttributes<Store>
   declare isActive: boolean | null;
 
   declare readonly createdAt: CreationOptional<Date>;
+  declare lastCollectedAt: Date | null;
   declare updatedAt: Date | null;
   declare deletedAt: Date | null;
 
@@ -67,6 +68,7 @@ Store.init(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    lastCollectedAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
   },

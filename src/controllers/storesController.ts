@@ -1,7 +1,7 @@
 import StoreServices from '@src/services/store.services';
 import { ExtendedRequest } from '@src/types/common.types';
 import { Request, Response } from 'express';
-import { IncludeOptions, Op } from 'sequelize';
+import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 import ProductServices from '@src/services/product.services';
 import UserService from '@src/services/user.services';
@@ -10,6 +10,8 @@ import User from '@database/models/user';
 import StoreProduct from '@database/models/storeproduct';
 import ProductsMovement from '@database/models/productsmovement';
 import { recordDeleted } from '@src/services/history.services';
+import SaleServices from '@src/services/sale.services';
+import TransactionServices from '@src/services/transaction.services';
 
 class StoresController extends BaseController {
   async createStore(req: Request, res: Response): Promise<Response> {
@@ -493,6 +495,61 @@ class StoresController extends BaseController {
     return res.status(200).json({
       status: 200,
       data: stores,
+    });
+  }
+
+  // collect store profit
+  async collectStoreProfit(req: ExtendedRequest, res: Response): Promise<Response> {
+    const { from: unformattedFrom, to: unformattedTo, storeId } = req.body;
+
+    const from = new Date(unformattedFrom);
+    const to = new Date(unformattedTo);
+
+    if (storeId) {
+      const store = await StoreServices.getOneStore({ id: storeId });
+      if (!store) {
+        return res.status(404).json({
+          status: 404,
+          message: `Store with id ${storeId} not found`,
+        });
+      }
+    }
+
+    // Mark all sales profit as collected
+    const salesWhere: WhereOptions = {
+      createdAt: { [Op.between]: [from, to] },
+      checkedAt: null,
+      refundedAt: null,
+      deletedAt: null,
+    };
+    if (storeId) salesWhere.storeId = storeId;
+    const storeSales = await SaleServices.getAllSales({}, salesWhere);
+    if (storeSales.total) {
+      SaleServices.bulkUpdateSale({ id: { [Op.in]: storeSales.sales.map((s) => s.id) } }, { checkedAt: new Date() });
+    }
+
+    // Mark all transactions profit as collected
+    const transactionsWhere: WhereOptions = {
+      createdAt: { [Op.between]: [from, to] },
+      deletedAt: null,
+    };
+    if (storeId) transactionsWhere.storeId = storeId;
+    const storeTransactions = await TransactionServices.getAllTransactions({}, transactionsWhere);
+    if (storeTransactions.total) {
+      TransactionServices.bulkUpdateTransactions(
+        { id: { [Op.in]: storeTransactions.transactions.map((s) => s.id) } },
+        { checked: true }
+      );
+    }
+
+    // Update the store last profit collected field
+    const storesWhere: WhereOptions = {};
+    if (storeId) storesWhere.id = storeId;
+    StoreServices.bulkUpdateStores(storesWhere, { lastCollectedAt: new Date() });
+
+    return res.status(200).json({
+      status: 200,
+      message: `Profit collected successfully`,
     });
   }
 }

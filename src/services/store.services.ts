@@ -80,6 +80,11 @@ class StoreServices {
   static async getAllStoresNameAndLocation() {
     return await Store.findAll({ where: { name: { [Op.not]: 'expired' } }, attributes: ['id', 'name', 'location'] });
   }
+
+  static async bulkUpdateStores(where: WhereOptions, updateData: Partial<Store>) {
+    const [count] = await Store.update(updateData, { where });
+    return [count];
+  }
 }
 
 export default StoreServices;
