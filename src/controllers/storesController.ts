@@ -545,7 +545,7 @@ class StoresController extends BaseController {
     // Update the store last profit collected field
     const storesWhere: WhereOptions = {};
     if (storeId) storesWhere.id = storeId;
-    StoreServices.bulkUpdateStores(storesWhere, { lastCollectedAt: new Date() });
+    StoreServices.bulkUpdateStores(storesWhere, { lastCollectedAt: to });
 
     return res.status(200).json({
       status: 200,

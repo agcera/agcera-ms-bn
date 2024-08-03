@@ -4,6 +4,7 @@ import Transaction from '@database/models/transaction';
 import { GetAllRequestQuery } from '@src/types/sales.types';
 import { ReportTransactionRow } from '@src/types/transaction.types';
 import { Op } from 'sequelize';
+import { s } from './security';
 
 export const findQueryGenerators = (
   modelAttributes: { [key: string]: any },
@@ -203,7 +204,7 @@ export const generateReport = ({
       <div class="bg-white m-auto w-full max-w-[900px]">
         <div>
           <div>
-            <h1 class="font-bold text-3xl text-center mt-2">${store?.name || 'Agceramoz'} report</h1>
+            <h1 class="font-bold text-3xl text-center mt-2">${s(store?.name) || 'Agceramoz'} report</h1>
             <h1 class="mb-2 text-center font-light">
               Report from <span class="font-semibold">${from.toDateString()}</span> to
               <span class="font-semibold">${to.toDateString()}</span>
@@ -232,7 +233,7 @@ export const generateReport = ({
               (productName) =>
                 `
                 <tr class="bg-gray-50 *:p-2 border-b border-blue_gray-A700">
-                  <td align="left">${productName}</td>
+                  <td align="left">${s(productName)}</td>
                   <td align="center">${remainingProducts[productName].count}</td>
                   <td align="right">${remainingProducts[productName].price} MZN</td>
                 </tr>
@@ -265,7 +266,7 @@ export const generateReport = ({
                 const { count, amount } = paymentsObjRows[key];
                 return `
                   <tr class="bg-gray-50/70 *:p-2 border-b border-blue_gray-A700">
-                    <td align="left">${key.toLocaleUpperCase()}</td>
+                    <td align="left">${s(key.toLocaleUpperCase())}</td>
                     <td align="center">${count}</td>
                     <td align="right">${amount} MZN</td>
                   </tr>
@@ -301,7 +302,7 @@ export const generateReport = ({
                 return `
                   <tr class="bg-gray-50/70 *:p-2 border-b border-blue_gray-A700">
                     <td align="left">${doneAt}</td>
-                    <td align="left" class="truncate">${store}</td>
+                    <td align="left" class="truncate">${s(store)}</td>
                     <td align="center">${totalProducts}</td>
                     <td align="right">${totalCostPrice} MZN</td>
                     <td align="left">${totalSellingPrice} MZN</td>
@@ -349,9 +350,9 @@ export const generateReport = ({
                 return `
                 <tr class="bg-gray-50/70 *:p-2 border-b border-blue_gray-A700">
                   <td align="left">${doneAt}</td>
-                  <td align="left" class="truncate">${store}</td>
-                  <td align="center" ${type.toString() === 'EXPENSE' ? 'style="color: lightcoral"' : ''}>${type}</td>
-                  <td align="left" class="truncate max-w-[200px]" title="${action}">${action}</td>
+                  <td align="left" class="truncate">${s(store)}</td>
+                  <td align="center" ${type.toString() === 'EXPENSE' ? 'style="color: lightcoral"' : ''}>${s(type)}</td>
+                  <td align="left" class="truncate max-w-[200px]" title="${s(action)}">${s(action)}</td>
                   ${
                     amount < 0
                       ? `<td align="right" style="color: lightcoral">(${amount} MZN)</td>`
@@ -391,9 +392,9 @@ export const generateReport = ({
                 return `
                 <tr class="bg-gray-50/70 *:p-2 border-b border-blue_gray-A700">
                   <td align="left">${doneAt}</td>
-                  <td align="left" class="truncate">${store}</td>
+                  <td align="left" class="truncate">${s(store)}</td>
                   <td align="center" ${type.toString() === 'EXPENSE' ? 'style="color: lightcoral"' : ''}>${type}</td>
-                  <td align="left" class="truncate max-w-[200px]" title="${action}">${action}</td>
+                  <td align="left" class="truncate max-w-[200px]" title="${s(action)}">${s(action)}</td>
                   ${
                     amount < 0
                       ? `<td align="right" style="color: lightcoral">(${amount} MZN)</td>`
@@ -437,7 +438,6 @@ export const generateReport = ({
     `
       </div>
     </body>
-  </html>
-  `
+  </html>`
   );
 };
