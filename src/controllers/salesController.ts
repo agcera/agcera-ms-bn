@@ -147,7 +147,7 @@ class SalesController extends BaseController {
       if (product.quantity < product_removed[product.productId]) {
         return res.status(400).json({
           status: 400,
-          message: `Requested quantity of product with id ${product.productId} related to ${chosen_variations[i].id} is not available`,
+          message: `Requested quantity of ${product.product.name} related to ${chosen_variations[i].name} is not available`,
         });
       }
     }
