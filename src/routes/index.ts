@@ -9,6 +9,7 @@ import transactionRoutes from './transactionRoutes';
 // import deletedRoutes from './deletetedRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import historyRoutes from './historyRoutes';
+import clientRoutes from './clientsRoutes';
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router.use('/transactions', transactionRoutes);
 // router.use('/deleted', deletedRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/history', historyRoutes);
+router.use('/clients', clientRoutes);
 
 router.post('/error', () => {
   throw new Error('This is an error');
