@@ -2,8 +2,8 @@ import allowToCreate from '@src/middlewares/allowToCreate';
 import upload from '@src/middlewares/multer';
 import { validate, validateParams } from '@src/middlewares/validation';
 import {
-  emailSchema,
   passwordSchema,
+  phoneSchema,
   userLoginSchema,
   userRegisterSchema,
   userUpdateSchema,
@@ -17,7 +17,7 @@ const usersController = new UsersController();
 
 router.post('/register', upload.single('image'), allowToCreate, validate(userRegisterSchema), usersController.register);
 router.post('/login', validate(userLoginSchema), usersController.Login);
-router.post('/forgot', validate(emailSchema), usersController.ForgotPasword);
+router.post('/forgot', validate(phoneSchema), usersController.ForgotPasword);
 router.put('/reset/:token', validate(passwordSchema), usersController.resetPassword);
 router.post('/logout', usersController.Logout);
 

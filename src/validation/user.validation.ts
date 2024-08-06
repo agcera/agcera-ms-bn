@@ -2,9 +2,18 @@
 import { UserGendersEnum, UserRolesEnum } from '@src/types/user.types';
 import joi from 'joi';
 
-export const emailSchema = joi.object({
-  email: joi.string().email().required(),
+export const phoneSchema = joi.object({
+  phone: joi
+    .string()
+    .pattern(/^\+\d{12}$/)
+    .required()
+    .messages({
+      'string.pattern.base': 'Please provide a valid phone number that starts with + and have 12 digits',
+      'string.empty': 'Phone number cannot be empty',
+      'any.required': 'Phone number is a required field',
+    }),
 });
+
 export const passwordSchema = joi.object({
   password: joi.string().min(4).required(),
 });

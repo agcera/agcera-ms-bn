@@ -9,6 +9,7 @@ import { Request, Response } from 'express';
 import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 import Variation from '@database/models/variation';
+import { recordDeleted } from '@src/services/history.services';
 // import Product from '@database/models/product';
 // import { recordDeleted } from '@src/services/deleted.services';
 
@@ -196,7 +197,7 @@ export default class ProductsController extends BaseController {
   // delete product
   async deleteProduct(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
-    // const user = req.user!;
+    const user = req.user!;
 
     const product = await ProductServices.getProductByPk(id, [
       {
@@ -215,6 +216,8 @@ export default class ProductsController extends BaseController {
         include: [{ association: 'sales', required: true }],
       },
     ]);
+
+    console.log(product?.description, 'desc');
 
     if (!product) {
       return res.status(404).json({
@@ -239,10 +242,10 @@ export default class ProductsController extends BaseController {
       });
     }
 
-    // record the product in deleted table
-    // await recordDeleted({name: user.name, phone: user.phone}, 'product', product);
-
     await product.destroy();
+
+    // record the product in deleted table
+    await recordDeleted({ name: user.name, phone: user.phone }, 'product', product);
 
     // delete the image from cloudinary
     handleDeleteUpload(product.image).catch((error) => {

@@ -251,6 +251,14 @@ class StoresController extends BaseController {
       for (let i = 0; i < productsWithIds.length; i++) {
         const { productId, quantity } = productsWithIds[i];
         await StoreProduct.increment({ quantity }, { where: { storeId: mainStore!.id, productId } });
+
+        await ProductsMovement.create({
+          quantity,
+          productId,
+          userId: req.user?.id,
+          from: store?.id,
+          to: mainStore?.id,
+        });
       }
 
     // move all users to the main store
@@ -411,6 +419,7 @@ class StoresController extends BaseController {
     // check for the to store
     if (to !== 'expired') {
       toStore = await StoreServices.getOneStoreWithExpired({ id: to }, include);
+      console.log(toStore, 'toStoredddddd');
     } else {
       toStore = await StoreServices.getOneStoreWithExpired({ name: to }, include);
     }
