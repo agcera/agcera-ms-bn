@@ -2,7 +2,12 @@ import { Router } from 'express';
 import StoreController from '../controllers/storesController';
 import { isAdmin, isLoggedIn, isStoreKeeperUp } from '@src/middlewares/checkAuth';
 import { validate, validateParams } from '@src/middlewares/validation';
-import { addProductToStoreSchema, storeRegisterSchema, storeUpdateSchema } from '@src/validation/store.validation';
+import {
+  addProductToStoreSchema,
+  collectProfitSchema,
+  storeRegisterSchema,
+  storeUpdateSchema,
+} from '@src/validation/store.validation';
 
 const router = Router();
 const storesController = new StoreController();
@@ -18,5 +23,6 @@ router.get('/:storeId/products', isLoggedIn, validateParams(), storesController.
 router.get('/:storeId/users', isStoreKeeperUp, validateParams(), storesController.getStoreUsers);
 
 router.post('/addProduct', isAdmin, validate(addProductToStoreSchema), storesController.addProductToStore);
+router.post('/collectProfit', isAdmin, validate(collectProfitSchema), storesController.collectStoreProfit);
 
 export default router;

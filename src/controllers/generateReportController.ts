@@ -7,7 +7,7 @@ import { generateReport } from '@src/utils/generators';
 import { reportSchema } from '@src/validation/report.validation';
 import { Response } from 'express';
 import puppeteer from 'puppeteer';
-import { IncludeOptions, Op } from 'sequelize';
+import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 import { UserRolesEnum } from '@src/types/user.types';
 
@@ -23,7 +23,7 @@ class GenerateReportController extends BaseController {
     }
     req.query = value;
 
-    const { from: unformattedFrom, to: unformattedTo, storeId: queryStoreId } = req.query;
+    const { from: unformattedFrom, to: unformattedTo, storeId: queryStoreId, includeChecked } = req.query;
 
     const from = new Date(unformattedFrom);
     // const from = generateFirstDate(new Date(unformattedFrom));
@@ -59,28 +59,36 @@ class GenerateReportController extends BaseController {
       {} as { [key: string]: { count: number; price: number } }
     );
 
-    const { sales } = await SaleServices.getAllSales(
-      {},
-      {
-        ...(storeId && { storeId }),
-        refundedAt: null,
-        createdAt: {
-          [Op.gte]: from.toISOString(),
-          [Op.lte]: to.toISOString(),
-        },
-      }
-    );
+    let salesWhere: WhereOptions = {
+      ...(storeId && { storeId }),
+      refundedAt: null,
+      createdAt: {
+        [Op.gte]: from.toISOString(),
+        [Op.lte]: to.toISOString(),
+      },
+    };
+    if (includeChecked === false) {
+      salesWhere = {
+        ...salesWhere,
+        checkedAt: null,
+      };
+    }
+    const { sales } = await SaleServices.getAllSales({}, salesWhere);
 
-    const { transactions } = await TransactionServices.getAllTransactions(
-      {},
-      {
-        ...(storeId && { storeId }),
-        createdAt: {
-          [Op.gte]: from.toISOString(),
-          [Op.lte]: to.toISOString(),
-        },
-      }
-    );
+    let transactionsWhere: WhereOptions = {
+      ...(storeId && { storeId }),
+      createdAt: {
+        [Op.gte]: from.toISOString(),
+        [Op.lte]: to.toISOString(),
+      },
+    };
+    if (includeChecked === false) {
+      transactionsWhere = {
+        ...transactionsWhere,
+        checked: false,
+      };
+    }
+    const { transactions } = await TransactionServices.getAllTransactions({}, transactionsWhere);
 
     // Open a new page
     const browser = await puppeteer.launch({

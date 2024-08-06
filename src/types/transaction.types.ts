@@ -9,4 +9,5 @@ export interface ReportTransactionRow {
   type: TransactionTypesEnum;
   action: string;
   amount: number;
+  method: string;
 }

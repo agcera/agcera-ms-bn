@@ -71,3 +71,9 @@ export const addProductToStoreSchema = Joi.object({
     'any.required': 'Quantity is required',
   }),
 });
+
+export const collectProfitSchema = Joi.object({
+  storeId: Joi.string().uuid(),
+  from: Joi.date().required(),
+  to: Joi.date().required(),
+});

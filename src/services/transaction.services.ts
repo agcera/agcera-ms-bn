@@ -59,6 +59,11 @@ class TransactionServices {
 
     return { total: count, transactions: rows };
   }
+
+  static async bulkUpdateTransactions(where: WhereOptions, updateData: Partial<Transaction>) {
+    const [count] = await Transaction.update(updateData, { where });
+    return [count];
+  }
 }
 
 export default TransactionServices;

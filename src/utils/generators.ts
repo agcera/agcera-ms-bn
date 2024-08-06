@@ -4,6 +4,8 @@ import Transaction from '@database/models/transaction';
 import { GetAllRequestQuery } from '@src/types/sales.types';
 import { ReportTransactionRow } from '@src/types/transaction.types';
 import { Op } from 'sequelize';
+import { s } from './security';
+import { format } from 'date-fns';
 
 export const findQueryGenerators = (
   modelAttributes: { [key: string]: any },
@@ -92,37 +94,47 @@ export const generateReport = ({
   transactions: Transaction[];
   isAdmin: boolean;
 }) => {
-  const paymentsObjRows: { [paymentMethod: string]: { count: number; amount: number } } = {};
+  const paymentsObjRows: {
+    [paymentMethod: string]: { salesCount: number; transactionsCount: number; amount: number };
+  } = {};
   let totalSalesProfitLoss: number = 0;
   let totalRowsSellingPrice: number = 0;
   const salesRows = sales.map((sale) => {
     const store = sale.store;
     const storeVariations = sale.variations;
-    const { totalProducts, totalCostPrice, totalSellingPrice } = storeVariations.reduce(
+    const { totalCostPrice, totalSellingPrice, products } = storeVariations.reduce(
       (acc, storeVariation) => {
-        acc.totalProducts += (storeVariation.quantity || 1) * storeVariation.variation.number;
-        acc.totalCostPrice +=
-          (storeVariation.quantity || 1) * storeVariation.variation.number * storeVariation.variation.costPrice;
-        acc.totalSellingPrice +=
-          (storeVariation.quantity || 1) * storeVariation.variation.number * storeVariation.variation.sellingPrice;
+        acc.products.push({
+          name: storeVariation.variation.product.name,
+          variation: storeVariation.variation.name,
+          price: (storeVariation.quantity || 0) * storeVariation.variation.sellingPrice,
+        });
+        acc.totalCostPrice += (storeVariation.quantity || 1) * storeVariation.variation.costPrice;
+        acc.totalSellingPrice += (storeVariation.quantity || 1) * storeVariation.variation.sellingPrice;
         return acc;
       },
-      { totalProducts: 0, totalCostPrice: 0, totalSellingPrice: 0 }
+      { products: [], totalCostPrice: 0, totalSellingPrice: 0 } as {
+        products: { name: string; variation: string; price: number }[];
+        totalSellingPrice: number;
+        totalCostPrice: number;
+      }
     );
     paymentsObjRows[sale.paymentMethod] = {
-      count: (paymentsObjRows[sale.paymentMethod]?.count || 0) + 1,
+      salesCount: (paymentsObjRows[sale.paymentMethod]?.salesCount || 0) + 1,
       amount: (paymentsObjRows[sale.paymentMethod]?.amount || 0) + totalSellingPrice,
+      transactionsCount: paymentsObjRows[sale.paymentMethod]?.transactionsCount || 0,
     };
     const profitLoss = totalSellingPrice - totalCostPrice;
     totalRowsSellingPrice += totalSellingPrice;
     totalSalesProfitLoss += profitLoss;
     return {
-      doneAt: new Date(sale.createdAt).toDateString(),
+      doneAt: format(new Date(sale.createdAt), 'E dd/MM/yyyy HH:mm'),
       store: store.name,
-      totalProducts,
+      products,
       totalCostPrice,
       totalSellingPrice,
       profitLoss,
+      method: sale.paymentMethod,
     };
   });
 
@@ -138,8 +150,9 @@ export const generateReport = ({
       if (type === 'INCOME') {
         totalTransactionsIncomes += amount;
         acc.incomeTransactionsRows.push({
-          doneAt: new Date(transaction.createdAt).toDateString(),
+          doneAt: format(new Date(transaction.createdAt), 'E dd/MM/yyyy HH:mm'),
           store: store.name,
+          method: transaction.paymentMethod,
           type,
           action,
           amount,
@@ -147,13 +160,19 @@ export const generateReport = ({
       } else {
         totalTransactionsExpenses += amount;
         acc.expenseTransactionsRows.push({
-          doneAt: new Date(transaction.createdAt).toDateString(),
+          doneAt: format(new Date(transaction.createdAt), 'E dd/MM/yyyy HH:mm'),
           store: store.name,
+          method: transaction.paymentMethod,
           type,
           action,
           amount,
         });
       }
+      paymentsObjRows[transaction.paymentMethod] = {
+        transactionsCount: (paymentsObjRows[transaction.paymentMethod]?.transactionsCount || 0) + 1,
+        amount: (paymentsObjRows[transaction.paymentMethod]?.amount || 0) + amount,
+        salesCount: paymentsObjRows[transaction.paymentMethod]?.salesCount || 0,
+      };
       totalTransactionsProfitLoss += amount;
       return acc;
 
@@ -170,6 +189,8 @@ export const generateReport = ({
       expenseTransactionsRows: ReportTransactionRow[];
     }
   );
+
+  const totalPayments = totalRowsSellingPrice + totalTransactionsProfitLoss;
 
   const netProfitLoss = totalSalesProfitLoss + totalTransactionsProfitLoss;
 
@@ -203,7 +224,7 @@ export const generateReport = ({
       <div class="bg-white m-auto w-full max-w-[900px]">
         <div>
           <div>
-            <h1 class="font-bold text-3xl text-center mt-2">${store?.name || 'Agceramoz'} report</h1>
+            <h1 class="font-bold text-3xl text-center mt-2">${s(store?.name) || 'Agceramoz'} report</h1>
             <h1 class="mb-2 text-center font-light">
               Report from <span class="font-semibold">${from.toDateString()}</span> to
               <span class="font-semibold">${to.toDateString()}</span>
@@ -232,7 +253,7 @@ export const generateReport = ({
               (productName) =>
                 `
                 <tr class="bg-gray-50 *:p-2 border-b border-blue_gray-A700">
-                  <td align="left">${productName}</td>
+                  <td align="left">${s(productName)}</td>
                   <td align="center">${remainingProducts[productName].count}</td>
                   <td align="right">${remainingProducts[productName].price} MZN</td>
                 </tr>
@@ -256,18 +277,24 @@ export const generateReport = ({
             <tr class="bg-green-300 *:p-2">
               <th align="left">Payment method</th>
               <th align="center">N<sup>o</sup> of sales</th>
+              <th align="center">N<sup>o</sup> of transactions</th>
               <th align="right">Total amount</th>
             </tr>
           </thead>
           <tbody>
             ${Object.keys(paymentsObjRows)
               .map((key) => {
-                const { count, amount } = paymentsObjRows[key];
+                const { salesCount, transactionsCount, amount } = paymentsObjRows[key];
                 return `
                   <tr class="bg-gray-50/70 *:p-2 border-b border-blue_gray-A700">
-                    <td align="left">${key.toLocaleUpperCase()}</td>
-                    <td align="center">${count}</td>
-                    <td align="right">${amount} MZN</td>
+                    <td align="left">${s(key.toLocaleUpperCase())}</td>
+                    <td align="center">${salesCount}</td>
+                    <td align="center">${transactionsCount}</td>
+                    ${
+                      amount < 0
+                        ? `<td align="right" style="color: lightcoral">(${amount} MZN)</td>`
+                        : `<td align="right">${amount} MZN</td>`
+                    }
                   </tr>
               `;
               })
@@ -276,7 +303,11 @@ export const generateReport = ({
         </table>
         <div class="bg-gray-100 flex items-center justify-between px-2 py-3">
           <p>Total Payments</p>
-            <p>${totalRowsSellingPrice} MZN</p>
+            ${
+              totalPayments < 0
+                ? `<td align="right" style="color: lightcoral">(${totalPayments} MZN)</td>`
+                : `<td align="right">${totalPayments} MZN</td>`
+            }
         </div>` +
     (isAdmin
       ? `
@@ -289,21 +320,31 @@ export const generateReport = ({
             <tr class="bg-green-300 *:p-2">
               <th align="left">Done at</th>
               <th align="left">Store</th>
-              <th align="center">N<sup>o</sup> of products</th>
-              <th align="right">Total Cost price</th>
+              <th align="left">Products</th>
+              <th align="left">Payment method</th>
+              <th align="left">Total Cost price</th>
               <th align="left">Total Selling price</th>
               <th align="right">Profit/Loss</th>
             </tr>
           </thead>
           <tbody>
             ${salesRows
-              .map(({ doneAt, store, totalProducts, totalCostPrice, totalSellingPrice, profitLoss }) => {
+              .map(({ doneAt, method, store, products, totalCostPrice, totalSellingPrice, profitLoss }) => {
                 return `
                   <tr class="bg-gray-50/70 *:p-2 border-b border-blue_gray-A700">
                     <td align="left">${doneAt}</td>
-                    <td align="left" class="truncate">${store}</td>
-                    <td align="center">${totalProducts}</td>
-                    <td align="right">${totalCostPrice} MZN</td>
+                    <td align="left" class="truncate">${s(store)}</td>
+                    <td align="left">
+                      <ul>
+                        ${products
+                          .map(({ name, variation, price }, index) => {
+                            return `<li class="w-full ${index % 2 === 0 ? 'bg-[#E6EEF5]' : 'bg-[#CFCFCF]'} px-2 my-1">${s(name)}; ${s(variation)}; ${price} MZN</li>`;
+                          })
+                          .join(' ')}
+                      </ul>
+                    </td>
+                    <td align="left">${method}</td>
+                    <td align="left">${totalCostPrice} MZN</td>
                     <td align="left">${totalSellingPrice} MZN</td>
                     ${
                       profitLoss < 0
@@ -338,20 +379,22 @@ export const generateReport = ({
             <tr class="bg-green-300 *:p-2">
               <th align="left">Done at</th>
               <th align="left">Store</th>
-              <th align="center">Type</th>
+              <th align="left">Type</th>
+              <th align="left">Payment method</th>
               <th align="left">Action</th>
               <th align="right">Amount</th>
             </tr>
           </thead>
           <tbody>
             ${incomeTransactionsRows
-              .map(({ doneAt, store, type, action, amount }) => {
+              .map(({ doneAt, method, store, type, action, amount }) => {
                 return `
                 <tr class="bg-gray-50/70 *:p-2 border-b border-blue_gray-A700">
                   <td align="left">${doneAt}</td>
-                  <td align="left" class="truncate">${store}</td>
-                  <td align="center" ${type.toString() === 'EXPENSE' ? 'style="color: lightcoral"' : ''}>${type}</td>
-                  <td align="left" class="truncate max-w-[200px]" title="${action}">${action}</td>
+                  <td align="left" class="truncate">${s(store)}</td>
+                  <td align="left" ${type.toString() === 'EXPENSE' ? 'style="color: lightcoral"' : ''}>${s(type)}</td>
+                  <td align="left">${method}</td>
+                  <td align="left" class="truncate max-w-[200px]" title="${s(action)}">${s(action)}</td>
                   ${
                     amount < 0
                       ? `<td align="right" style="color: lightcoral">(${amount} MZN)</td>`
@@ -391,9 +434,9 @@ export const generateReport = ({
                 return `
                 <tr class="bg-gray-50/70 *:p-2 border-b border-blue_gray-A700">
                   <td align="left">${doneAt}</td>
-                  <td align="left" class="truncate">${store}</td>
+                  <td align="left" class="truncate">${s(store)}</td>
                   <td align="center" ${type.toString() === 'EXPENSE' ? 'style="color: lightcoral"' : ''}>${type}</td>
-                  <td align="left" class="truncate max-w-[200px]" title="${action}">${action}</td>
+                  <td align="left" class="truncate max-w-[200px]" title="${s(action)}">${s(action)}</td>
                   ${
                     amount < 0
                       ? `<td align="right" style="color: lightcoral">(${amount} MZN)</td>`
@@ -437,7 +480,6 @@ export const generateReport = ({
     `
       </div>
     </body>
-  </html>
-  `
+  </html>`
   );
 };

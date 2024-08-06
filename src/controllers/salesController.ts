@@ -14,8 +14,9 @@ import CleintServices from '@src/services/client.services';
 class SalesController extends BaseController {
   async getAllSales(req: ExtendedRequest, res: Response): Promise<Response> {
     const { role: userRole, id: userId } = req.user!;
+    const { storeId } = req.query;
 
-    const where: WhereOptions = {};
+    const where: WhereOptions = storeId ? { storeId } : {};
     const include: IncludeOptions[] = [];
 
     switch (userRole) {
@@ -146,7 +147,7 @@ class SalesController extends BaseController {
       if (product.quantity < product_removed[product.productId]) {
         return res.status(400).json({
           status: 400,
-          message: `Requested quantity of product with id ${product.productId} related to ${chosen_variations[i].id} is not available`,
+          message: `Requested quantity of ${product.product.name} related to ${chosen_variations[i].name} is not available`,
         });
       }
     }
