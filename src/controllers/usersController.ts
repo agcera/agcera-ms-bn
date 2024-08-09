@@ -11,6 +11,7 @@ import userService from '../services/user.services';
 import { /* defaultTokenExpirySeconds,*/ generateToken, verifyToken } from '../utils/jwtFunctions';
 import sendEmail from '../utils/sendEmail';
 import Store from '@database/models/store';
+import { recordDeleted } from '@src/services/history.services';
 
 // import { recordDeleted } from '@src/services/deleted.services';
 // import SaleServices from '@src/services/sale.services';
@@ -136,7 +137,7 @@ class UsersController extends BaseController {
     }
 
     // generate the toke for the user
-    const tokenDuration = 7 * 24 * 60 * 60;
+    const tokenDuration = 1 * 60 * 60;
     const token = generateToken({ id: user.id, role: user.role }, tokenDuration);
     // store the token in the cookies
     // multiply by 1000 to convert to milliseconds as the expiresIn is in seconds
@@ -169,21 +170,51 @@ class UsersController extends BaseController {
 
   // forgot password
   async ForgotPasword(req: Request, res: Response): Promise<Response> {
-    const email = req.body.email;
+    const phone = req.body.phone;
 
     // check the user exists
-    const user = await userService.getOneUser({ email });
+    const user = await userService.getOneUser({ phone });
 
     if (user) {
       // If no user found do nothing, this is to prevent information leakage about our user emails 😝
       // generate the token
       const token = generateToken({ id: user.id }, 15 * 60 * 60);
 
+      // if the user is not admin, send the reset email link to all adming
+      if (user.role !== UserRolesEnum.ADMIN) {
+        const admins = await userService.getAllUsers({ role: [UserRolesEnum.ADMIN] }, {});
+        for (const admin of admins.users) {
+          admin.email &&
+            (await sendEmail(
+              admin.email,
+              'Password Reset for ' + user.name,
+              `Follow the link below to reset the password of ${user.name}:<br><a href="${process.env.FRONTEND_URL}/${process.env.FRONTEND_RESET_PATH || 'reset-password'}/${user.name.slice()}/${token}">Reset Password</a><br><br>This link will expire in 15 minutes.`
+            ).catch((e) => {
+              return res.status(500).json({
+                status: 'fail',
+                message: e.message || 'Error sending email. Try again later.',
+              });
+            }));
+        }
+
+        return res.status(200).json({
+          status: 'success',
+          message: 'An email was sent to the admins. Please wait for their response.',
+        });
+      }
+
+      if (!user.email) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'Reset password disabled. Please contact the admin.',
+        });
+      }
+
       // send the token to the user's email
       const emailSent = await sendEmail(
-        email,
-        'Password Reset',
-        `Follow the link below to reset your password:\n${process.env.FRONTEND_URL}/${process.env.FRONTEND_RESET_PATH || '/rest-password'}/${token}\n\nThis link will expire in 15 minutes.`
+        user.email,
+        'Reset Your Password',
+        `Follow the link below to reset your password:<br><a href="${process.env.FRONTEND_URL}/${process.env.FRONTEND_RESET_PATH || 'reset-password'}/${user.name.slice()}/${token}">Reset Password</a><br><br>This link will expire in 15 minutes.`
       );
 
       if (!emailSent) {
@@ -340,7 +371,7 @@ class UsersController extends BaseController {
     }
 
     // Check if email or phone are already taken
-    const duplicateUser = await userService.getOneUser({ [Op.or]: [{ email }, { phone }], [Op.not]: { id } });
+    const duplicateUser = await userService.getOneUser({ [Op.or]: [email && { email }, { phone }], [Op.not]: { id } });
     if (duplicateUser) {
       let message = '';
       if (duplicateUser.email === email) {
@@ -457,7 +488,7 @@ class UsersController extends BaseController {
     await foundUser.destroy();
 
     // record in the deleted users
-    // await recordDeleted({name: user.name, phone: user.phone}, 'user', foundUser);
+    await recordDeleted({ name: user.name, phone: user.phone }, 'user', foundUser);
 
     // No need to bother catching the error as the image is already updated
     handleDeleteUpload(foundUser.image).catch((error) => {

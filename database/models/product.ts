@@ -58,7 +58,7 @@ Product.init(
     description: {
       type: DataTypes.TEXT,
       allowNull: false,
-      defaultValue: '',
+      defaultValue: 'Good Product',
     },
     type: {
       type: DataTypes.ENUM(...Object.values(ProductTypesEnum)),

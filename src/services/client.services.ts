@@ -12,6 +12,10 @@ class CleintServices {
     const client = await Client.findOne({ where: { phone } });
     return client;
   }
+
+  static async getClients() {
+    return await Client.findAll();
+  }
 }
 
 export default CleintServices;

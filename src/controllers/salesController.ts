@@ -54,11 +54,17 @@ class SalesController extends BaseController {
     const { role: userRole, id: userId, storeId } = req.user!;
     const { id } = req.params;
 
-    const include: IncludeOptions = {
-      association: 'store',
-      attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
-    };
-    const sale = await SaleServices.getOneSale({ id }, [include]);
+    const include: IncludeOptions[] = [
+      {
+        association: 'store',
+        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+      },
+      {
+        association: 'client',
+        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+      },
+    ];
+    const sale = await SaleServices.getOneSale({ id }, [...include]);
 
     if ((userRole === 'user' && sale?.clientId !== userId) || (userRole === 'keeper' && sale?.store.id !== storeId)) {
       return res.status(403).json({
