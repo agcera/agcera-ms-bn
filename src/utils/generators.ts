@@ -98,14 +98,41 @@ export const generateReport = ({
     [paymentMethod: string]: { salesCount: number; transactionsCount: number; amount: number };
   } = {};
   let totalSalesProfitLoss: number = 0;
-  let totalRowsSellingPrice: number = 0;
+  let totalSalesSellingPrice: number = 0;
+  const salesProducts: {
+    [key: string]: { count: number; costPrice: number; sellingPrice: number; profitLoss: number };
+  } = {};
+  const salesProductsTotals: { count: number; costPrice: number; sellingPrice: number; profitLoss: number } = {
+    count: 0,
+    costPrice: 0,
+    sellingPrice: 0,
+    profitLoss: 0,
+  };
   const salesRows = sales.map((sale) => {
     const store = sale.store;
     const storeVariations = sale.variations;
     const { totalCostPrice, totalSellingPrice, products } = storeVariations.reduce(
       (acc, storeVariation) => {
+        // Collect the salesProducts table data
+        const productName = storeVariation.variation.product.name;
+        const productCostPrice = parseFloat(`${storeVariation.variation.costPrice}`);
+        const productSellingPrice = parseFloat(`${storeVariation.variation.sellingPrice}`);
+        const productQuantity = storeVariation.quantity || 0;
+        const productProfitLoss = (productSellingPrice - productCostPrice) * productQuantity;
+        salesProducts[productName] = {
+          count: (salesProducts[productName]?.count || 0) + productQuantity,
+          costPrice: (salesProducts[productName]?.costPrice || 0) + productCostPrice,
+          sellingPrice: (salesProducts[productName]?.sellingPrice || 0) + productSellingPrice,
+          profitLoss: (salesProducts[productName]?.profitLoss || 0) + productProfitLoss,
+        };
+        salesProductsTotals.count += productQuantity;
+        salesProductsTotals.costPrice += productCostPrice;
+        salesProductsTotals.sellingPrice += productSellingPrice;
+        salesProductsTotals.profitLoss += productProfitLoss;
+
+        // Collect the sales table data
         acc.products.push({
-          name: storeVariation.variation.product.name,
+          name: productName,
           variation: storeVariation.variation.name,
           price: (storeVariation.quantity || 0) * storeVariation.variation.sellingPrice,
         });
@@ -125,7 +152,7 @@ export const generateReport = ({
       transactionsCount: paymentsObjRows[sale.paymentMethod]?.transactionsCount || 0,
     };
     const profitLoss = totalSellingPrice - totalCostPrice;
-    totalRowsSellingPrice += totalSellingPrice;
+    totalSalesSellingPrice += totalSellingPrice;
     totalSalesProfitLoss += profitLoss;
     return {
       doneAt: format(new Date(sale.createdAt), 'E dd/MM/yyyy HH:mm'),
@@ -190,9 +217,11 @@ export const generateReport = ({
     }
   );
 
-  const totalPayments = totalRowsSellingPrice + totalTransactionsProfitLoss;
+  const totalPayments = totalSalesSellingPrice + totalTransactionsProfitLoss;
 
   const netProfitLoss = totalSalesProfitLoss + totalTransactionsProfitLoss;
+
+  const totalRevenues = totalSalesSellingPrice + totalTransactionsIncomes;
 
   return (
     `<!doctype html>
@@ -220,11 +249,11 @@ export const generateReport = ({
         height: 100%;
       }
     </style>
-    <body class="bg-white flex justify-center p-4">
+    <body class="bg-white flex justify-center px-4">
       <div class="bg-white m-auto w-full max-w-[900px]">
         <div>
           <div>
-            <h1 class="font-bold text-3xl text-center mt-2">${s(store?.name) || 'Agceramoz'} report</h1>
+            <h1 class="font-bold text-3xl text-center">${s(store?.name) || 'Agceramoz'} report</h1>
             <h1 class="mb-2 text-center font-light">
               Report from <span class="font-semibold">${from.toDateString()}</span> to
               <span class="font-semibold">${to.toDateString()}</span>
@@ -235,38 +264,67 @@ export const generateReport = ({
           </div>
         </div>
 
-        <!-- Remaining products report -->
+        ${
+          isAdmin
+            ? `
+        <!-- Report overview -->
         <div class="bg-green-500 flex items-center justify-between px-2 py-3 mt-2 font-bold">
-          <p>Remaining products report on ${new Date().toDateString()}</p>
+          <p>Report overview on ${new Date().toDateString()}</p>
         </div>
-        <table class="w-full">
-          <thead>
-            <tr class="bg-green-300 *:p-2">
-              <th align="left">Product name</th>
-              <th align="center">Products remaining</th>
-              <th align="right">Total selling price</th>
-            </tr>
-          </thead>
-          <tbody>
-          ${Object.keys(remainingProducts)
-            .map(
-              (productName) =>
-                `
-                <tr class="bg-gray-50 *:p-2 border-b border-blue_gray-A700">
-                  <td align="left">${s(productName)}</td>
-                  <td align="center">${remainingProducts[productName].count}</td>
-                  <td align="right">${remainingProducts[productName].price} MZN</td>
-                </tr>
-              `
-            )
-            .join(' ')}
-            <tr class="bg-gray-100 *:py-3">
-              <td align="left" class="pl-2">Total selling price</td>
-              <td align="center" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.count, 0)}</td>
-              <td align="right" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.price, 0)} MZN</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="w-full bg-gray-100 px-3">
+          <table class="w-full">
+            <tbody>
+              <tr class="bg-gray-100 *:p-2">
+                <td align="left" class="font-semibold text-lg">TOTAL Incomes:</td>
+                <td align="right">${totalTransactionsIncomes} MZN</td>
+              </tr>
+              <tr class="bg-gray-100 *:px-2">
+                <td align="left" class="font-semibold text-lg">TOTAL Sales:</td>
+                <td align="left">
+                  <table class="w-full">
+                    <thead>
+                      <tr>
+                        <th class="text-sm pr-4" align="left">Quantity</th>
+                        <th class="text-sm" align="right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td align="left" class="pr-4">${sales.length}</td>
+                        <td align="right">${totalSalesSellingPrice} MZN</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td class="rounded-full h-[1px] bg-black" colspan="100"></td>
+              </tr>
+              <tr class="bg-gray-100 *:p-2">
+                <td align="left" class="font-semibold text-lg">TOTAL Expenses:</td>
+                <td align="right">${totalTransactionsExpenses < 0 ? totalTransactionsExpenses * -1 : totalTransactionsExpenses} MZN</td>
+              </tr>
+              <tr class="bg-gray-100 *:p-2">
+                <td align="left" class="font-semibold text-lg">TOTAL Revenue:</td>
+                <td align="right">${totalRevenues} MZN</td>
+              </tr>
+              <tr>
+                <td class="rounded-full h-[1px] bg-black" colspan="100"></td>
+              </tr>
+              <tr class="bg-gray-100 *:p-2">
+                <td align="left" class="font-bold text-xl">${netProfitLoss < 0 ? 'NET Loss' : 'NET Profit'}:</td>
+                ${
+                  netProfitLoss < 0
+                    ? `<td align="right" class="text-lg" style="color: lightcoral">(${netProfitLoss.toFixed(2)} MZN)</td>`
+                    : `<td align="right" class="text-lg">${netProfitLoss.toFixed(2)} MZN</td>`
+                }
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        `
+            : ''
+        }
 
         <!-- Payments report section -->
         <div class="bg-green-500 flex items-center justify-between px-2 py-3 font-bold mt-2">
@@ -308,7 +366,92 @@ export const generateReport = ({
                 ? `<td align="right" style="color: lightcoral">(${totalPayments} MZN)</td>`
                 : `<td align="right">${totalPayments} MZN</td>`
             }
-        </div>` +
+        </div>
+
+        ${
+          isAdmin
+            ? `
+        <!-- Sales Products report -->
+        <div class="bg-green-500 flex items-center justify-between px-2 py-3 mt-2 font-bold">
+          <p>Sold Products report</p>
+        </div>
+        <table class="w-full">
+          <thead>
+            <tr class="bg-green-300 *:p-2">
+              <th align="left">Product name</th>
+              <th align="center">Quantity</th>
+              <th align="center">Total Cost price</th>
+              <th align="center">Total selling price</th>
+              <th align="right">Total Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Object.keys(salesProducts)
+              .map((productName) => {
+                return `
+                <tr class="bg-gray-50 *:p-2 border-b border-blue_gray-A700">
+                  <td align="left">${s(productName)}</td>
+                  <td align="center">${salesProducts[productName].count}</td>
+                  <td align="center">${salesProducts[productName].costPrice} MZN</td>
+                  <td align="center">${salesProducts[productName].sellingPrice} MZN</td>
+                  ${
+                    salesProducts[productName].profitLoss < 0
+                      ? `<td align="right" style="color: lightcoral">(${salesProducts[productName].profitLoss} MZN)</td>`
+                      : `<td align="right">${salesProducts[productName].profitLoss} MZN</td>`
+                  }
+                </tr>
+              `;
+              })
+              .join(' ')}
+            <tr class="bg-gray-100 *:py-3">
+              <td align="left" class="pl-2">Total</td>
+              <td align="center" class="pr-2">${salesProductsTotals.count}</td>
+              <td align="center" class="pr-2">${salesProductsTotals.costPrice} MZN</td>
+              <td align="center" class="pr-2">${salesProductsTotals.sellingPrice} MZN</td>
+              ${
+                salesProductsTotals.profitLoss < 0
+                  ? `<td align="right" style="color: lightcoral" class="pr-2">(${salesProductsTotals.profitLoss} MZN)</td>`
+                  : `<td align="right" class="pr-2">${salesProductsTotals.profitLoss} MZN</td>`
+              }
+            </tr>
+          </tbody>
+        </table>
+        `
+            : ''
+        }
+
+        <!-- Remaining products report -->
+        <div class="bg-green-500 flex items-center justify-between px-2 py-3 mt-2 font-bold">
+          <p>Remaining products report</p>
+        </div>
+        <table class="w-full">
+          <thead>
+            <tr class="bg-green-300 *:p-2">
+              <th align="left">Product name</th>
+              <th align="center">Products remaining</th>
+              <th align="right">Total selling price</th>
+            </tr>
+          </thead>
+          <tbody>
+          ${Object.keys(remainingProducts)
+            .map(
+              (productName) =>
+                `
+                <tr class="bg-gray-50 *:p-2 border-b border-blue_gray-A700">
+                  <td align="left">${s(productName)}</td>
+                  <td align="center">${remainingProducts[productName].count}</td>
+                  <td align="right">${remainingProducts[productName].price} MZN</td>
+                </tr>
+              `
+            )
+            .join(' ')}
+            <tr class="bg-gray-100 *:py-3">
+              <td align="left" class="pl-2">Total selling price</td>
+              <td align="center" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.count, 0)}</td>
+              <td align="right" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.price, 0)} MZN</td>
+            </tr>
+          </tbody>
+        </table>` +
     (isAdmin
       ? `
         <!-- Sales report section -->
@@ -457,9 +600,9 @@ export const generateReport = ({
           }
         </div>
 
-        <!-- Calculate net profit or loss -->
+        <!-- Calculate net transactions profit or loss -->
         <div class="bg-gray-100 flex items-center justify-between px-2 py-3 border-t-2 border-green-600">
-          <p>Total Profit/Loss</p>
+          <p>Total Transactions Profit/Loss</p>
           ${
             totalTransactionsProfitLoss < 0
               ? `<p style="color: lightcoral">(${totalTransactionsProfitLoss} MZN)</p>`

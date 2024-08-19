@@ -109,7 +109,7 @@ class GenerateReportController extends BaseController {
     await page.setContent(htmlContent);
 
     // Generate PDF
-    const pdfBuffer = await page.pdf({ printBackground: true });
+    const pdfBuffer = await page.pdf({ printBackground: true, margin: { top: 20, bottom: 20 } });
     await browser.close();
 
     res.setHeader('Content-Disposition', 'filename="report.pdf"');
