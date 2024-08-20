@@ -23,4 +23,5 @@ export interface GetAllRequestQuery<
   sort?: Sort;
   role?: [UserRolesEnum];
   storeId?: string;
+  clientPhone?: string;
 }

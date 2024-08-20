@@ -37,8 +37,6 @@ export class AuthMiddleware extends BaseMiddleware {
       });
     }
 
-    console.log(decoded_token.iat, 'decoded_token');
-
     // If the token exists, every 10 minutes generate a new token that shall expire in an hour
     // This is to keep the user logged in for a long time and log him out after an hour of inactivity
 
