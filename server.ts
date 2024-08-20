@@ -25,7 +25,7 @@ app.use(cookieParser());
 app.use(Express.static('public'));
 
 app.get('/', (_req, res) => {
-  res.send('welcome to agcera, got to /api/v1 to access the latest API documentation');
+  res.send('welcome to agcera, got to /api/v1 to access the latest API documentations');
 });
 app.use('/api/v1', router);
 
