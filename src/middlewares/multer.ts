@@ -21,12 +21,8 @@ export class MulterMiddleware extends BaseMiddleware {
             },
           }).single(name)(req, res, next);
 
-          console.log(name, 'my nameememem');
-          console.log(multerRes, 'this is multer Res');
-
           return multerRes;
         } catch (err: any) {
-          console.log('I faced an error please');
           return res.status(400).json({
             status: 'fail',
             message: err.message,

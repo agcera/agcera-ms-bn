@@ -12,6 +12,7 @@ export const getAllRequestQuerySchema = Joi.object({
     .items(Joi.string().valid(...Object.values(UserRolesEnum)))
     .unique()
     .min(1),
+  clientPhone: Joi.string(),
 });
 
 export const uuidSchema = Joi.object({ id: Joi.string().uuid().required() });

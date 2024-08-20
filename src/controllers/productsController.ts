@@ -217,8 +217,6 @@ export default class ProductsController extends BaseController {
       },
     ]);
 
-    console.log(product?.description, 'desc');
-
     if (!product) {
       return res.status(404).json({
         status: 'fail',

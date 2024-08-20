@@ -419,7 +419,6 @@ class StoresController extends BaseController {
     // check for the to store
     if (to !== 'expired') {
       toStore = await StoreServices.getOneStoreWithExpired({ id: to }, include);
-      console.log(toStore, 'toStoredddddd');
     } else {
       toStore = await StoreServices.getOneStoreWithExpired({ name: to }, include);
     }

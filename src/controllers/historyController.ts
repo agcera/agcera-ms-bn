@@ -84,9 +84,6 @@ class HistoryController extends BaseController {
     const { storeId } = req.query;
     const { search, limit, skip, sort } = req.query;
 
-    // get the store needed to fromt he query
-    console.log(storeId);
-
     // add the where option in all the stores where from or to is contains the storeId
     const WhereOptions: WhereOptions = storeId ? { [Op.or]: [{ to: storeId }, { from: storeId }] } : {};
 

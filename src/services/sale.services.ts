@@ -3,7 +3,7 @@ import SaleProduct from '@database/models/saleproduct';
 import { GetAllRequestQuery } from '@src/types/sales.types';
 import { findQueryGenerators } from '@src/utils/generators';
 import { IncludeOptions, WhereOptions } from 'sequelize';
-// import { Op } from 'sequelize'
+import { Op } from 'sequelize';
 
 class SaleServices {
   static DEFAULT_STORE_INCLUDE: IncludeOptions = {
@@ -28,12 +28,33 @@ class SaleServices {
     ],
   };
 
+  static DEFAULT_CLIENT_INCLUDE: IncludeOptions = {
+    association: 'client',
+    required: true,
+    attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+  };
+
   static async getAllSales(queryData: GetAllRequestQuery, where?: WhereOptions<Sale>, includes?: IncludeOptions[]) {
-    const include: IncludeOptions[] = [this.DEFAULT_STORE_INCLUDE, this.DEFAULT_PRODUCT_INCLUDE, ...(includes || [])];
+    const include: IncludeOptions[] = [
+      this.DEFAULT_STORE_INCLUDE,
+      this.DEFAULT_PRODUCT_INCLUDE,
+      ...(includes || []),
+      ...(queryData.clientPhone
+        ? [
+            {
+              association: 'client',
+              required: true,
+              where: { phone: { [Op.like]: `%${queryData.clientPhone}%` } },
+              attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+            },
+          ]
+        : []),
+    ].filter(Boolean);
 
     const { count, rows } = await Sale.findAndCountAll(
       findQueryGenerators(Sale.getAttributes(), queryData, { where, include })
     );
+
     return { total: count, sales: rows };
   }
 

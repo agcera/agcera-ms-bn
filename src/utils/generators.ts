@@ -99,6 +99,7 @@ export const generateReport = ({
   } = {};
   let totalSalesProfitLoss: number = 0;
   let totalSalesSellingPrice: number = 0;
+  let totalSalesCostPrice: number = 0;
   const salesProducts: {
     [key: string]: { count: number; costPrice: number; sellingPrice: number; profitLoss: number };
   } = {};
@@ -153,6 +154,7 @@ export const generateReport = ({
     };
     const profitLoss = totalSellingPrice - totalCostPrice;
     totalSalesSellingPrice += totalSellingPrice;
+    totalSalesCostPrice += totalCostPrice;
     totalSalesProfitLoss += profitLoss;
     return {
       doneAt: format(new Date(sale.createdAt), 'E dd/MM/yyyy HH:mm'),
@@ -284,13 +286,18 @@ export const generateReport = ({
                   <table class="w-full">
                     <thead>
                       <tr>
-                        <th class="text-sm pr-4" align="left">Quantity</th>
-                        <th class="text-sm" align="right">Amount</th>
+                        <th class="text-sm" align="center">Quantity</th>
+                        <th class="text-sm pr-4" align="center">Profit</th>
+                        <th class="text-sm" align="center">Cost Price</th>
+                        <th class="text-sm " align="right">Selling Price Price</th>
+
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td align="left" class="pr-4">${sales.length}</td>
+                        <td align="center">${sales.length}</td>
+                        <td align="center" class="pr-4">${totalSalesProfitLoss} MZN</td>
+                        <td align="center" >${totalSalesCostPrice}</td>
                         <td align="right">${totalSalesSellingPrice} MZN</td>
                       </tr>
                     </tbody>
@@ -300,14 +307,16 @@ export const generateReport = ({
               <tr>
                 <td class="rounded-full h-[1px] bg-black" colspan="100"></td>
               </tr>
+                   <tr class="bg-gray-100 *:p-2">
+                <td align="left" class="font-semibold text-lg">TOTAL Revenue:</td>
+                <td align="right">${totalRevenues} MZN</td>
+              </tr>
+
               <tr class="bg-gray-100 *:p-2">
                 <td align="left" class="font-semibold text-lg">TOTAL Expenses:</td>
                 <td align="right">${totalTransactionsExpenses < 0 ? totalTransactionsExpenses * -1 : totalTransactionsExpenses} MZN</td>
               </tr>
-              <tr class="bg-gray-100 *:p-2">
-                <td align="left" class="font-semibold text-lg">TOTAL Revenue:</td>
-                <td align="right">${totalRevenues} MZN</td>
-              </tr>
+
               <tr>
                 <td class="rounded-full h-[1px] bg-black" colspan="100"></td>
               </tr>
@@ -375,7 +384,7 @@ export const generateReport = ({
         <div class="bg-green-500 flex items-center justify-between px-2 py-3 mt-2 font-bold">
           <p>Sold Products report</p>
         </div>
-        <table class="w-full">
+        <table class="w-full" style="page-break-after: always;">
           <thead>
             <tr class="bg-green-300 *:p-2">
               <th align="left">Product name</th>
@@ -440,7 +449,7 @@ export const generateReport = ({
                 <tr class="bg-gray-50 *:p-2 border-b border-blue_gray-A700">
                   <td align="left">${s(productName)}</td>
                   <td align="center">${remainingProducts[productName].count}</td>
-                  <td align="right">${remainingProducts[productName].price} MZN</td>
+                  <td align="right">${remainingProducts[productName].price * remainingProducts[productName].count} MZN</td>
                 </tr>
               `
             )
@@ -448,7 +457,7 @@ export const generateReport = ({
             <tr class="bg-gray-100 *:py-3">
               <td align="left" class="pl-2">Total selling price</td>
               <td align="center" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.count, 0)}</td>
-              <td align="right" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.price, 0)} MZN</td>
+              <td align="right" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.price * p.count, 0)} MZN</td>
             </tr>
           </tbody>
         </table>` +
