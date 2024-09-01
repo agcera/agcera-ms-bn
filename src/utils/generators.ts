@@ -20,6 +20,9 @@ export const findQueryGenerators = (
   limit && (findQuery['limit'] = limit);
   sort && (findQuery['order'] = Object.entries(sort).map(([key, value]) => [...key.split('.'), value]));
 
+  // add the query to order things by created date
+  findQuery['order'] = [...(findQuery['order'] || []), ['createdAt', 'DESC']];
+
   if (additionalData) {
     Object.assign(findQuery, additionalData);
   }
@@ -116,10 +119,10 @@ export const generateReport = ({
       (acc, storeVariation) => {
         // Collect the salesProducts table data
         const productName = storeVariation.variation.product.name;
-        const productCostPrice = parseFloat(`${storeVariation.variation.costPrice}`);
-        const productSellingPrice = parseFloat(`${storeVariation.variation.sellingPrice}`);
         const productQuantity = storeVariation.quantity || 0;
-        const productProfitLoss = (productSellingPrice - productCostPrice) * productQuantity;
+        const productCostPrice = parseFloat(`${storeVariation.variation.costPrice}`) * productQuantity;
+        const productSellingPrice = parseFloat(`${storeVariation.variation.sellingPrice}`) * productQuantity;
+        const productProfitLoss = productSellingPrice - productCostPrice;
         salesProducts[productName] = {
           count: (salesProducts[productName]?.count || 0) + productQuantity,
           costPrice: (salesProducts[productName]?.costPrice || 0) + productCostPrice,
@@ -130,6 +133,8 @@ export const generateReport = ({
         salesProductsTotals.costPrice += productCostPrice;
         salesProductsTotals.sellingPrice += productSellingPrice;
         salesProductsTotals.profitLoss += productProfitLoss;
+
+        console.log(productName, productSellingPrice, 'product selling price');
 
         // Collect the sales table data
         acc.products.push({
@@ -289,7 +294,7 @@ export const generateReport = ({
                         <th class="text-sm" align="center">Quantity</th>
                         <th class="text-sm pr-4" align="center">Profit</th>
                         <th class="text-sm" align="center">Cost Price</th>
-                        <th class="text-sm " align="right">Selling Price Price</th>
+                        <th class="text-sm " align="right">Selling Price</th>
 
                       </tr>
                     </thead>
