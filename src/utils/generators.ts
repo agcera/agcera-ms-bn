@@ -120,16 +120,17 @@ export const generateReport = ({
         // Collect the salesProducts table data
         const productName = storeVariation.variation.product.name;
         const productQuantity = storeVariation.quantity || 0;
+        const productCount = productQuantity * storeVariation.variation.number;
         const productCostPrice = parseFloat(`${storeVariation.variation.costPrice}`) * productQuantity;
         const productSellingPrice = parseFloat(`${storeVariation.variation.sellingPrice}`) * productQuantity;
         const productProfitLoss = productSellingPrice - productCostPrice;
         salesProducts[productName] = {
-          count: (salesProducts[productName]?.count || 0) + productQuantity,
+          count: (salesProducts[productName]?.count || 0) + productCount,
           costPrice: (salesProducts[productName]?.costPrice || 0) + productCostPrice,
           sellingPrice: (salesProducts[productName]?.sellingPrice || 0) + productSellingPrice,
           profitLoss: (salesProducts[productName]?.profitLoss || 0) + productProfitLoss,
         };
-        salesProductsTotals.count += productQuantity;
+        salesProductsTotals.count += productCount;
         salesProductsTotals.costPrice += productCostPrice;
         salesProductsTotals.sellingPrice += productSellingPrice;
         salesProductsTotals.profitLoss += productProfitLoss;
