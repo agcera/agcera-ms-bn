@@ -1,5 +1,5 @@
 /** @type {import('sequelize-cli').Migration} */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 module.exports = {
   async up(queryInterface) {
     // await queryInterface.bulkInsert(

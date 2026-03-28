@@ -30,7 +30,7 @@ export class AuthMiddleware extends BaseMiddleware {
     let decoded_token: Record<string, any>;
     try {
       decoded_token = verifyToken(token);
-    } catch (error) {
+    } catch (_) {
       return res.status(401).json({
         status: 'fail',
         message: 'Invalid Token supplied! Please Login again!',

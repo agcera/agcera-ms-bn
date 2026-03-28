@@ -29,7 +29,7 @@ export class ValidationMiddleware extends BaseMiddleware {
     return next();
   };
 
-  validateProductExist = async (req: Request, res: Response, next: NextFunction) => {
+  validateProductExist = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
     const { productId } = req.params;
 
     const product = await ProductServices.getProductByPk(productId);

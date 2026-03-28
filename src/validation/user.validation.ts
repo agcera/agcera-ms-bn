@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+ 
 import { UserGendersEnum, UserRolesEnum } from '@src/types/user.types';
 import joi from 'joi';
 

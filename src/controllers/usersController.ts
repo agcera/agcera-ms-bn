@@ -233,7 +233,7 @@ class UsersController extends BaseController {
   }
 
   // reset password
-  async resetPassword(req: Request, res: Response): Promise<Response> {
+  async resetPassword(req: ExtendedRequest, res: Response): Promise<Response> {
     // get the token from  params
     const { token } = req.params;
     const password = req.body.password;

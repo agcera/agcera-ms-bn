@@ -1,6 +1,6 @@
 'use strict';
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
