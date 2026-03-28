@@ -99,7 +99,7 @@ User.init(
     image: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'https://via.placeholder.com/150?text=No%20User%20Image',
+      defaultValue: 'https://placehold.co/150x100?text=No%20User%20Image',
     },
     isActive: {
       type: DataTypes.BOOLEAN,

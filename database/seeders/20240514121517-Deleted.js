@@ -28,7 +28,7 @@ const devDeleteds = [
             gender: 'UNSPECIFIED',
             location: 'Maputo Center',
             role: 'keeper',
-            image: 'https://via.placeholder.com/150?text=image%20not%20found',
+            image: 'https://placehold.co/150x100?text=image%20not%20found',
             isActive: true,
           },
           {
@@ -39,7 +39,7 @@ const devDeleteds = [
             gender: 'UNSPECIFIED',
             location: 'Maputo Center',
             role: 'user',
-            image: 'https://via.placeholder.com/150?text=image%20not%20found',
+            image: 'https://placehold.co/150x100?text=image%20not%20found',
             isActive: true,
           },
         ],
@@ -59,7 +59,7 @@ const devDeleteds = [
             product: {
               id: '123e4567-e89b-12d3-a456-426614174001',
               name: 'UnoProducto',
-              image: 'https://via.placeholder.com/150?text=image%20not%20found',
+              image: 'https://placehold.co/150x100?text=image%20not%20found',
               description: 'Producto de prueba en la base de datos',
               type: 'STANDARD',
             },
@@ -79,7 +79,7 @@ const devDeleteds = [
             product: {
               id: '123e4567-e89b-12d3-a456-426614174002',
               name: 'DuoProducto',
-              image: 'https://via.placeholder.com/150?text=image%20not%20found',
+              image: 'https://placehold.co/150x100?text=image%20not%20found',
               description: 'Producto de prueba en la base de datos',
               type: 'STANDARD',
             },
@@ -99,7 +99,7 @@ const devDeleteds = [
             product: {
               id: '123e4567-e89b-12d3-a456-426614174003',
               name: 'TresProducto',
-              image: 'https://via.placeholder.com/150?text=image%20not%20found',
+              image: 'https://placehold.co/150x100?text=image%20not%20found',
               description: 'Producto de prueba en la base de datos',
               type: 'STANDARD',
             },
@@ -119,7 +119,7 @@ const devDeleteds = [
             product: {
               id: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
               name: 'Agcera',
-              image: 'https://via.placeholder.com/150?text=image%20not%20found',
+              image: 'https://placehold.co/150x100?text=image%20not%20found',
               description: 'Producto de prueba en la base de datos',
               type: 'SPECIAL',
             },
@@ -165,7 +165,7 @@ const devDeleteds = [
               product: {
                 id: '123e4567-e89b-12d3-a456-426614174001',
                 name: 'UnoProducto',
-                image: 'https://via.placeholder.com/150?text=image%20not%20found',
+                image: 'https://placehold.co/150x100?text=image%20not%20found',
                 description: 'Producto de prueba en la base de datos',
                 type: 'STANDARD',
               },
@@ -186,7 +186,7 @@ const devDeleteds = [
               product: {
                 id: '123e4567-e89b-12d3-a456-426614174002',
                 name: 'DuoProducto',
-                image: 'https://via.placeholder.com/150?text=image%20not%20found',
+                image: 'https://placehold.co/150x100?text=image%20not%20found',
                 description: 'Producto de prueba en la base de datos',
                 type: 'STANDARD',
               },
@@ -214,7 +214,7 @@ const devDeleteds = [
         location: 'Maputo Center',
         role: 'keeper',
         storeId: '143e4667-a81d-12d3-c356-469311174301',
-        image: 'https://via.placeholder.com/150?text=image%20not%20found',
+        image: 'https://placehold.co/150x100?text=image%20not%20found',
         isActive: true,
         createdAt: '2024-05-19T11:17:40.387Z',
         updatedAt: '2024-05-19T11:17:44.239Z',
@@ -241,7 +241,7 @@ const devDeleteds = [
       product: {
         id: '123e4567-e89b-12d3-a456-426614174001',
         name: 'UnoProducto',
-        image: 'https://via.placeholder.com/150?text=image%20not%20found',
+        image: 'https://placehold.co/150x100?text=image%20not%20found',
         description: 'Producto de prueba en la base de datos',
         type: 'STANDARD',
         createdAt: '2024-05-19T14:22:03.774Z',

@@ -18,12 +18,12 @@ module.exports = {
       image: {
         type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: 'https://via.placeholder.com/150?text=image%20not%20found',
+        defaultValue: 'https://placehold.co/150x100?text=image%20not%20found',
       },
       description: {
         type: Sequelize.TEXT,
         allowNull: false,
-        defaultValue: ''
+        defaultValue: '',
       },
       type: {
         type: Sequelize.ENUM('STANDARD', 'SPECIAL'),

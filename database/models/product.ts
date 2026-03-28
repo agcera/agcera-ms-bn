@@ -53,7 +53,7 @@ Product.init(
     image: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'https://via.placeholder.com/150?text=image%20not%20found',
+      defaultValue: 'https://placehold.co/150x100?text=image%20not%20found',
     },
     description: {
       type: DataTypes.TEXT,

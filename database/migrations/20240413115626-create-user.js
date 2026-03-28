@@ -31,7 +31,7 @@ module.exports = {
       image: {
         type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: 'https://via.placeholder.com/150?text=image%20not%20found',
+        defaultValue: 'https://placehold.co/150x100?text=image%20not%20found',
       },
       phone: {
         type: Sequelize.STRING,
