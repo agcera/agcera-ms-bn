@@ -36,6 +36,24 @@ class SaleServices {
       {
         association: 'mixture',
         attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+        include: [
+          {
+            association: 'items',
+            attributes: { exclude: ['createdAt', 'updatedAt'] },
+            include: [
+              {
+                association: 'product',
+                attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+                include: [
+                  {
+                    association: 'variations',
+                    attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
     ],
   };

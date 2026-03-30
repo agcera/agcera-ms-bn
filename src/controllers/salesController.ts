@@ -1,4 +1,5 @@
 import Mixture from '@database/models/mixture';
+import Sale from '@database/models/sale';
 import StoreProduct from '@database/models/storeproduct';
 import Variation from '@database/models/variation';
 import ClientServices from '@src/services/client.services';
@@ -7,9 +8,29 @@ import StoreServices from '@src/services/store.services';
 import { ExtendedRequest } from '@src/types/common.types';
 import { ClientTypesEnum, UserRolesEnum } from '@src/types/user.types';
 import { type Response } from 'express';
-import { IncludeOptions, WhereOptions } from 'sequelize';
+import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 // import { recordDeleted } from '@src/services/deleted.services';
+
+const getNeighborSale = async (storeId: string, createdAt: Date, direction: 'prev' | 'next', excludeId?: string) => {
+  return Sale.findOne({
+    where: {
+      storeId,
+      ...(excludeId ? { id: { [Op.ne]: excludeId } } : {}),
+      createdAt: direction === 'prev' ? { [Op.lt]: createdAt } : { [Op.gt]: createdAt },
+    },
+    order: [['createdAt', direction === 'prev' ? 'DESC' : 'ASC']],
+  });
+};
+
+const isInCollectedRange = async (storeId: string, createdAt: Date, excludeId?: string) => {
+  const [prev, next] = await Promise.all([
+    getNeighborSale(storeId, createdAt, 'prev', excludeId),
+    getNeighborSale(storeId, createdAt, 'next', excludeId),
+  ]);
+
+  return Boolean(prev?.checkedAt && next?.checkedAt);
+};
 
 class SalesController extends BaseController {
   async getAllSales(req: ExtendedRequest, res: Response): Promise<Response> {
@@ -103,11 +124,22 @@ class SalesController extends BaseController {
       });
     }
 
-    const store = await StoreServices.getStoreById(storeId, [{ association: 'products' }]);
+    const store = await StoreServices.getStoreById(storeId, [
+      { association: 'products', include: [{ association: 'product', attributes: ['id', 'name'] }] },
+    ]);
     if (!store) {
       return res.status(404).json({
         status: 404,
         message: 'Store with the provided storeId not found',
+      });
+    }
+
+    const saleDate = doneOn ? new Date(doneOn) : new Date();
+    const collectedRange = await isInCollectedRange(storeId, saleDate);
+    if (collectedRange) {
+      return res.status(400).json({
+        status: 400,
+        message: 'Cannot create a sale in a collected time range for this payment method',
       });
     }
 
@@ -183,7 +215,7 @@ class SalesController extends BaseController {
           if (product.quantity < productRemoved[product.productId]) {
             return res.status(400).json({
               status: 400,
-              message: `Requested quantity of ${product.product.name} related to mixture ${mixture.name} is not available`,
+              message: `Requested quantity of ${product.product?.name || item.productId} related to mixture ${mixture.name} is not available`,
             });
           }
         }
