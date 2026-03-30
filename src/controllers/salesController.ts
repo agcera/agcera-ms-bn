@@ -17,7 +17,7 @@ const getNeighborSale = async (storeId: string, createdAt: Date, direction: 'pre
     where: {
       storeId,
       ...(excludeId ? { id: { [Op.ne]: excludeId } } : {}),
-      createdAt: direction === 'prev' ? { [Op.lt]: createdAt } : { [Op.gt]: createdAt },
+      createdAt: direction === 'prev' ? { [Op.lte]: createdAt } : { [Op.gte]: createdAt },
     },
     order: [['createdAt', direction === 'prev' ? 'DESC' : 'ASC']],
   });
@@ -139,7 +139,7 @@ class SalesController extends BaseController {
     if (collectedRange) {
       return res.status(400).json({
         status: 400,
-        message: 'Cannot create a sale in a collected time range for this payment method',
+        message: 'Cannot create a sale in a collected time range',
       });
     }
 

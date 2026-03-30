@@ -50,7 +50,9 @@ class GenerateReportController extends BaseController {
           if (storeProduct.quantity > 0) {
             acc[product.name] = {
               count: (acc[product.name]?.count || 0) + Number(storeProduct.quantity),
-              price: (acc[product.name]?.price || 0) + Number(product.variations[0].sellingPrice),
+              price:
+                (acc[product.name]?.price || 0) +
+                Number((product.variations.find((v) => v.number === 1) || product.variations[0]).sellingPrice),
             };
           }
         });
