@@ -3,9 +3,7 @@ import Joi from 'joi';
 
 export const createNewProductSchema = Joi.object({
   name: Joi.string().min(3).required(),
-  type: Joi.string()
-    .valid(...Object.values(ProductTypesEnum))
-    .required(),
+  type: Joi.string().valid(ProductTypesEnum.STANDARD, ProductTypesEnum.SPECIAL).required(),
   variations: Joi.array()
     .items(
       Joi.object({

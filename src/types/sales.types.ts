@@ -7,7 +7,8 @@ export interface CreateSaleRequestProducts {
 }
 
 export interface CreateSaleRequest {
-  products: CreateSaleRequestProducts;
+  variations?: CreateSaleRequestProducts;
+  mixtures?: CreateSaleRequestProducts;
   paymentMethod: PaymentMethodsEnum;
   clientId: string;
   clientType: ClientTypesEnum;

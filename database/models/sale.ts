@@ -1,17 +1,18 @@
 import sequelize from '@database/connection';
 import {
+  Association,
+  CreationOptional,
   DataTypes,
   type ForeignKey,
   type InferAttributes,
   type InferCreationAttributes,
   Model,
   NonAttribute,
-  CreationOptional,
-  Association,
 } from 'sequelize';
-import Store from './store';
-import SaleProduct from './saleproduct';
 import Client from './client';
+import SaleMixture from './salemixture';
+import SaleProduct from './saleproduct';
+import Store from './store';
 
 export enum PaymentMethodsEnum {
   MPESA = 'M-PESA',
@@ -33,10 +34,12 @@ class Sale extends Model<InferAttributes<Sale>, InferCreationAttributes<Sale>> {
 
   declare store: NonAttribute<Store>;
   declare variations: NonAttribute<SaleProduct[]>;
+  declare mixtures: NonAttribute<SaleMixture[]>;
   declare client: NonAttribute<Client>;
 
   declare static associations: {
     variations: Association<SaleProduct, Sale>;
+    mixtures: Association<SaleMixture, Sale>;
     store: Association<Sale, Store>;
   };
 
@@ -113,6 +116,15 @@ SaleProduct.belongsTo(Sale, {
 Sale.hasMany(SaleProduct, {
   foreignKey: 'saleId',
   as: 'variations',
+});
+
+SaleMixture.belongsTo(Sale, {
+  foreignKey: 'saleId',
+  as: 'sale',
+});
+Sale.hasMany(SaleMixture, {
+  foreignKey: 'saleId',
+  as: 'mixtures',
 });
 
 export default Sale;

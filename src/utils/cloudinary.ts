@@ -8,6 +8,10 @@ cloudinary.config({
 
 // can throw an error
 export async function handleUpload(file: Express.Multer.File, folder: string = ''): Promise<string> {
+  if (process.env.NODE_ENV === 'test') {
+    return `http://mocked.local/${folder || 'uploads'}/${Date.now()}.png`;
+  }
+
   const b64 = Buffer.from(file.buffer).toString('base64');
   const dataURI = 'data:' + file.mimetype + ';base64,' + b64;
 
@@ -21,6 +25,10 @@ export async function handleUpload(file: Express.Multer.File, folder: string = '
 
 // can throw an error
 export async function handleDeleteUpload(url: string) {
+  if (process.env.NODE_ENV === 'test') {
+    return { result: 'ok', url } as unknown;
+  }
+
   const urlLast = url.split('/images/').pop();
   const publicIdLast = urlLast!.split('.').shift();
   const publicId = `images/${publicIdLast}`;

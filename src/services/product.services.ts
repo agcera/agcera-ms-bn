@@ -83,4 +83,13 @@ export default class ProductServices {
       include: [this.DEFAULT_VARIATION_INCLUDE],
     });
   }
+
+  // delete product (DB-only)
+  static async deleteProduct(id: string, includes?: IncludeOptions[]) {
+    const product = await this.getProductByPk(id, includes);
+    if (!product) throw new Error('Product not found');
+
+    await product.destroy();
+    return product;
+  }
 }

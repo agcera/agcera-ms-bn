@@ -1,14 +1,14 @@
-import { UserRolesEnum } from './../types/user.types';
+import Mixture from '@database/models/mixture';
+import StoreProduct from '@database/models/storeproduct';
+import Variation from '@database/models/variation';
+import ClientServices from '@src/services/client.services';
 import SaleServices from '@src/services/sale.services';
 import StoreServices from '@src/services/store.services';
 import { ExtendedRequest } from '@src/types/common.types';
-import { ClientTypesEnum } from '@src/types/user.types';
+import { ClientTypesEnum, UserRolesEnum } from '@src/types/user.types';
 import { type Response } from 'express';
 import { IncludeOptions, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
-import Variation from '@database/models/variation';
-import StoreProduct from '@database/models/storeproduct';
-import CleintServices from '@src/services/client.services';
 // import { recordDeleted } from '@src/services/deleted.services';
 
 class SalesController extends BaseController {
@@ -87,19 +87,23 @@ class SalesController extends BaseController {
 
   async createSale(req: ExtendedRequest, res: Response): Promise<Response | undefined> {
     const user = req.user!;
-    const { variations, paymentMethod, storeId, clientName, phone, isMember, doneOn } = req.body;
+    const { variations = {}, mixtures = {}, paymentMethod, storeId, clientName, phone, isMember, doneOn } = req.body;
 
-    // Check if the user is allowed to create a sale in the store
-    if (user.role === 'keeper' && user.storeId !== storeId) {
+    if (!Object.keys(variations).length && !Object.keys(mixtures).length) {
+      return res.status(400).json({
+        status: 400,
+        message: 'Please select at least one product or mixture',
+      });
+    }
+
+    if (user.role === UserRolesEnum.KEEPER && user.storeId !== storeId) {
       return res.status(403).json({
         status: 403,
         message: 'You are not allowed to create a sale in this store',
       });
     }
 
-    // Check if the store and client exist and can be used
-    const include: IncludeOptions[] = [{ association: 'products' }];
-    const store = await StoreServices.getStoreById(storeId, include);
+    const store = await StoreServices.getStoreById(storeId, [{ association: 'products' }]);
     if (!store) {
       return res.status(404).json({
         status: 404,
@@ -107,68 +111,91 @@ class SalesController extends BaseController {
       });
     }
 
-    // check if the client with this phone number exists, if he does not exit create a new client
-    let client = await CleintServices.getClientsByPhone(phone);
-
+    let client = await ClientServices.getClientsByPhone(phone);
     if (!client) {
-      client = await CleintServices.createClient(clientName, phone, isMember);
+      client = await ClientServices.createClient(clientName, phone, isMember);
     }
 
-    // Check if the products exist and are available in the store
-    // here we will find the products related to the variations provided
-    const chosen_variations = await Variation.findAll({ where: { id: Object.keys(variations) } });
+    const variationIds = Object.keys(variations || {});
+    const mixtureIds = Object.keys(mixtures || {});
 
-    // check if all variations were found
-    if (chosen_variations.length !== Object.keys(variations).length) {
+    const chosenVariations = await Variation.findAll({ where: { id: variationIds } });
+    if (chosenVariations.length !== variationIds.length) {
       return res.status(404).json({
         status: 404,
         message: 'some variations chosen are not available',
       });
     }
 
-    const productId_and_variation: any = {};
-
-    for (let i = 0; i < chosen_variations.length; i++) {
-      productId_and_variation[chosen_variations[i].id] = chosen_variations[i].productId;
+    const chosenMixtures = await Mixture.findAll({
+      where: { id: mixtureIds },
+      include: [{ association: 'items' }],
+    });
+    if (chosenMixtures.length !== mixtureIds.length) {
+      return res.status(404).json({
+        status: 404,
+        message: 'some mixtures chosen are not available',
+      });
     }
 
-    // return res.send({message: 'we are here', productId_and_variation})
-    // check if the products exists in the stores
     const storeProducts = store.products;
+    const productRemoved: { [key: string]: number } = {};
 
-    const product_removed: { [key: string]: number } = {};
-
-    for (let i = 0; i < chosen_variations.length; i++) {
-      const product = storeProducts?.find((storeProduct) => storeProduct.productId === chosen_variations[i].productId);
+    for (let i = 0; i < chosenVariations.length; i++) {
+      const product = storeProducts?.find((storeProduct) => storeProduct.productId === chosenVariations[i].productId);
       if (!product) {
         return res.status(404).json({
           status: 404,
-          message: `Product with id ${chosen_variations[i].productId} related to variation ${chosen_variations[i].id} not found in the store with id ${storeId}`,
+          message: `Product with id ${chosenVariations[i].productId} related to variation ${chosenVariations[i].id} not found in the store with id ${storeId}`,
         });
       }
 
-      product_removed[product.productId] =
-        (product_removed[product.productId] || 0) + variations[chosen_variations[i].id] * chosen_variations[i].number;
+      productRemoved[product.productId] =
+        (productRemoved[product.productId] || 0) + variations[chosenVariations[i].id] * chosenVariations[i].number;
 
-      if (product.quantity < product_removed[product.productId]) {
+      if (product.quantity < productRemoved[product.productId]) {
         return res.status(400).json({
           status: 400,
-          message: `Requested quantity of ${product.product.name} related to ${chosen_variations[i].name} is not available`,
+          message: `Requested quantity of ${product.product.name} related to ${chosenVariations[i].name} is not available`,
         });
       }
     }
 
-    // Create the sale
-    const sale = await SaleServices.createSale(variations, paymentMethod, client.id, storeId, doneOn);
+    if (chosenMixtures.length) {
+      for (let i = 0; i < chosenMixtures.length; i++) {
+        const mixture = chosenMixtures[i];
+        const mixtureQuantity = mixtures[mixture.id] || 0;
+        const items = mixture.items || [];
 
-    // Update the quantity of the products in the store
-    const productsIds = Object.keys(product_removed);
+        for (let j = 0; j < items.length; j++) {
+          const item = items[j];
+          const product = storeProducts?.find((storeProduct) => storeProduct.productId === item.productId);
+          if (!product) {
+            return res.status(404).json({
+              status: 404,
+              message: `Product with id ${item.productId} related to mixture ${mixture.id} not found in the store with id ${storeId}`,
+            });
+          }
 
+          const removed = mixtureQuantity * item.number;
+          productRemoved[product.productId] = (productRemoved[product.productId] || 0) + removed;
+
+          if (product.quantity < productRemoved[product.productId]) {
+            return res.status(400).json({
+              status: 400,
+              message: `Requested quantity of ${product.product.name} related to mixture ${mixture.name} is not available`,
+            });
+          }
+        }
+      }
+    }
+
+    const sale = await SaleServices.createSale(variations, mixtures, paymentMethod, client.id, storeId, doneOn);
+
+    const productsIds = Object.keys(productRemoved);
     for (let i = 0; i < productsIds.length; i++) {
-      // find the variation related to the product from the chosen variations found before. we can get the variation id from the productId_and_variation object
-
       await StoreProduct.increment(
-        { quantity: -product_removed[productsIds[i]] },
+        { quantity: -productRemoved[productsIds[i]] },
         { where: { storeId, productId: productsIds[i] } }
       );
     }
@@ -182,8 +209,6 @@ class SalesController extends BaseController {
   async refundSale(req: ExtendedRequest, res: Response): Promise<Response> {
     const user = req.user!;
     const { id } = req.params;
-
-    // even the admin is only allowed to delete the sales at the main store only
     const sale = await SaleServices.getOneSale({ id });
     if (!sale) {
       return res.status(404).json({
@@ -199,15 +224,29 @@ class SalesController extends BaseController {
       });
     }
 
-    // know the number of products in the sale get each independet product and record independents in the object
+    // Keep track of the products to be added back to the store after refunding the sale
     const productsNumbers: { [key: string]: number } = {};
 
-    sale.variations.forEach((variation) => {
+    (sale.variations || []).forEach((variation) => {
       const product = variation.variation.productId;
       productsNumbers[product] = (productsNumbers[product] || 0) + variation.quantity! * variation.variation.number;
     });
 
-    // restore the products in the store productstable
+    const saleMixtures = sale.mixtures || [];
+    if (saleMixtures.length) {
+      const mixtureIds = saleMixtures.map((mixture) => mixture.mixtureId);
+      const mixtures = await Mixture.findAll({ where: { id: mixtureIds }, include: [{ association: 'items' }] });
+      const mixturesById = new Map(mixtures.map((mixture) => [mixture.id, mixture]));
+
+      saleMixtures.forEach((saleMixture) => {
+        const mixture = mixturesById.get(saleMixture.mixtureId);
+        if (!mixture?.items?.length) return;
+        mixture.items.forEach((item) => {
+          productsNumbers[item.productId] = (productsNumbers[item.productId] || 0) + saleMixture.quantity * item.number;
+        });
+      });
+    }
+
     const productsIds = Object.keys(productsNumbers);
     for (let i = 0; i < productsIds.length; i++) {
       await StoreProduct.increment(

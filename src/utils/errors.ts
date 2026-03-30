@@ -1,8 +1,10 @@
 import { NextFunction, Response, Request } from 'express';
 
- 
 export const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('\x1b[31mError ===> \n\x1b[37m', err);
+  if (process.env.NODE_ENV !== 'test') {
+    console.error('\x1b[31mError ===> \n\x1b[37m', err);
+  }
+
   return res.status(500).json({
     status: 'fail',
     message: 'An Unexpected error occurred. Please try again later.',

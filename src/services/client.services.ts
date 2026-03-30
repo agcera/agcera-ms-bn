@@ -1,10 +1,10 @@
 import Client from '@database/models/client';
 
-class CleintServices {
+class ClientServices {
   static async createClient(name: string, phone: string, isMember: boolean) {
-    const cleint = await Client.create({ name, phone, isMember });
+    const client = await Client.create({ name, phone, isMember });
 
-    return cleint;
+    return client;
   }
 
   // get one by phone
@@ -18,4 +18,4 @@ class CleintServices {
   }
 }
 
-export default CleintServices;
+export default ClientServices;

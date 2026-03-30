@@ -37,7 +37,6 @@ To use the AGCERA Accounting Monitoring System, follow these steps:
    ```
 
 3. Set up the environment variables:
-
    - Create a `.env` file in the root directory of the project.
    - Add the necessary environment variables, such as database connection details and API keys.
 
@@ -45,6 +44,19 @@ To use the AGCERA Accounting Monitoring System, follow these steps:
    ```shell
    npm run dev
    ```
+
+## Testing
+
+- Run backend tests (Jest):
+
+  ```shell
+  pnpm test
+  ```
+
+- Run the linter:
+  ```shell
+  pnpm lint
+  ```
 
 ## License
 

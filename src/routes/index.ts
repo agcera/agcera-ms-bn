@@ -10,6 +10,7 @@ import transactionRoutes from './transactionRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import historyRoutes from './historyRoutes';
 import clientRoutes from './clientsRoutes';
+import mixturesRoutes from './mixturesRoutes';
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.use(validateQueries);
 router.use('/users', usersRoute);
 router.use('/stores', storesRoutes);
 router.use('/products', productsRoutes);
+router.use('/mixtures', mixturesRoutes);
 router.use('/sales', salesRoutes);
 router.use('/report', generateReport);
 router.use('/transactions', transactionRoutes);

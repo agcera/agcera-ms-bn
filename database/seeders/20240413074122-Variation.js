@@ -1,5 +1,7 @@
 'use strict';
 
+const { devProducts } = require('./20240413052139-Product');
+
 const baseVariations = [];
 const devVariations = [
   {
@@ -9,7 +11,7 @@ const devVariations = [
     costPrice: 100,
     sellingPrice: 200,
     createdAt: new Date().toISOString(),
-    productId: '123e4567-e89b-12d3-a456-426614174001',
+    productId: devProducts[0].id,
   },
   {
     id: '3f33b9d1-9b11-4d85-a3c3-8d1676a67111',
@@ -18,7 +20,7 @@ const devVariations = [
     costPrice: 200,
     sellingPrice: 400,
     createdAt: new Date().toISOString(),
-    productId: '123e4567-e89b-12d3-a456-426614174002',
+    productId: devProducts[1].id,
   },
   {
     id: '3f33b9d1-9b11-4d85-a3c3-8d1676a67112',
@@ -27,7 +29,7 @@ const devVariations = [
     costPrice: 300,
     sellingPrice: 600,
     createdAt: new Date().toISOString(),
-    productId: '123e4567-e89b-12d3-a456-426614174003',
+    productId: devProducts[2].id,
   },
   {
     // agcera variations
@@ -37,7 +39,7 @@ const devVariations = [
     costPrice: 2450,
     sellingPrice: 2859,
     createdAt: new Date().toISOString(),
-    productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
+    productId: devProducts[3].id,
   },
   {
     id: 'fb8b9b0b-7b4e-4188-b0e4-90b14ff3fc54',
@@ -46,7 +48,7 @@ const devVariations = [
     costPrice: 6300,
     sellingPrice: 7500,
     createdAt: new Date().toISOString(),
-    productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
+    productId: devProducts[3].id,
   },
   {
     id: '2a899481-6203-4d67-b1f4-1233d4c6ad92',
@@ -55,7 +57,7 @@ const devVariations = [
     costPrice: 24150,
     sellingPrice: 28500,
     createdAt: new Date().toISOString(),
-    productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
+    productId: devProducts[3].id,
   },
   {
     id: '5a4d1654-5e95-46a4-ba27-66f8e3b7ac27',
@@ -64,14 +66,16 @@ const devVariations = [
     costPrice: 72450,
     sellingPrice: 85000,
     createdAt: new Date().toISOString(),
-    productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
+    productId: devProducts[3].id,
   },
 ];
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
+  baseVariations,
+  devVariations,
   async up(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const variations = isDevelopment ? baseVariations.concat(devVariations) : baseVariations;
 
@@ -81,7 +85,7 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const variationIds = (isDevelopment ? baseVariations.concat(devVariations) : baseVariations).map(
       (variation) => variation.id

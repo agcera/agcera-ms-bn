@@ -24,3 +24,6 @@ coverage/
 # Ignore logs and temporary files
 *.log
 *.tmp
+
+# Ignore GitHub instructions directory
+.github/instructions

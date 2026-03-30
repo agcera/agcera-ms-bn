@@ -1,3 +1,6 @@
+import MixtureItem from '@database/models/mixtureitem';
+import Variation from '@database/models/variation';
+import { recordDeleted } from '@src/services/history.services';
 import ProductServices from '@src/services/product.services';
 import VariationServices from '@src/services/variation.services';
 import { ExtendedRequest } from '@src/types/common.types';
@@ -8,10 +11,6 @@ import { UploadApiErrorResponse } from 'cloudinary';
 import { Request, Response } from 'express';
 import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
-import Variation from '@database/models/variation';
-import { recordDeleted } from '@src/services/history.services';
-// import Product from '@database/models/product';
-// import { recordDeleted } from '@src/services/deleted.services';
 
 export default class ProductsController extends BaseController {
   // get all products
@@ -96,6 +95,7 @@ export default class ProductsController extends BaseController {
 
     // create the product
     const product = await ProductServices.createNewProduct({ name, type, image: url });
+
     if (variations?.length > 0) {
       // Create variations
       await VariationServices.addManyVariations(product.id, variations);
@@ -129,15 +129,6 @@ export default class ProductsController extends BaseController {
       return res.status(400).json({
         status: 'fail',
         message: 'Standard products should only have one default variation',
-      });
-    }
-
-    // Check if there exist a product with the same name as the one supplied
-    const foundProduct = name && (await ProductServices.getOneProduct({ name: name, id: { [Op.not]: id } }));
-    if (foundProduct) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Product with the provided name already exists',
       });
     }
 
@@ -198,7 +189,6 @@ export default class ProductsController extends BaseController {
   async deleteProduct(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
     const user = req.user!;
-
     const product = await ProductServices.getProductByPk(id, [
       {
         association: 'stores',
@@ -215,6 +205,9 @@ export default class ProductsController extends BaseController {
         association: 'variations',
         include: [{ association: 'sales', required: true }],
       },
+      {
+        association: 'mixtureItems',
+      },
     ]);
 
     if (!product) {
@@ -223,7 +216,6 @@ export default class ProductsController extends BaseController {
         message: 'Product not found',
       });
     }
-    // check if the product has sales or if it is in store products
 
     if (product.variations?.length) {
       return res.status(400).json({
@@ -232,7 +224,6 @@ export default class ProductsController extends BaseController {
       });
     }
 
-    // if the product is in store products, it cannot be deleted
     if (product.stores?.length) {
       return res.status(400).json({
         status: 'fail',
@@ -240,7 +231,16 @@ export default class ProductsController extends BaseController {
       });
     }
 
-    await product.destroy();
+    const mixtureItemsCount = product.mixtureItems?.length ?? (await MixtureItem.count({ where: { productId: id } }));
+    if (mixtureItemsCount) {
+      return res.status(400).json({
+        status: 'fail',
+        message:
+          'Product cannot be deleted because it is used in one or more mixtures. Remove it from all mixtures first.',
+      });
+    }
+
+    await ProductServices.deleteProduct(id);
 
     // record the product in deleted table
     await recordDeleted({ name: user.name, phone: user.phone }, 'product', product);

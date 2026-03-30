@@ -1,5 +1,6 @@
 // Const { v4: uuidv4 } = require('uuid')
 const bcrypt = require('bcrypt');
+const { baseStores, devStores } = require('./20240406114830-Store');
 
 const baseUsers = [
   {
@@ -7,7 +8,7 @@ const baseUsers = [
     name: 'Olivier Kwizera',
     email: 'acv.olivio@gmail.com',
     password: bcrypt.hashSync('1234', bcrypt.genSaltSync(10)),
-    storeId: '143e4667-a81d-12d3-c356-469311174300',
+    storeId: baseStores[0].id,
     phone: '+258865541505',
     role: 'admin',
     createdAt: new Date(),
@@ -20,7 +21,7 @@ const devUsers = [
     name: 'keeper 1',
     email: 'keeper1@gmail.com',
     password: bcrypt.hashSync('1234', bcrypt.genSaltSync(10)),
-    storeId: '143e4667-a81d-12d3-c356-469311174301',
+    storeId: devStores[0].id,
     phone: '+123456789024',
     role: 'keeper',
     createdAt: new Date(),
@@ -30,7 +31,7 @@ const devUsers = [
     name: 'keeper 2',
     email: 'keeper2@gmail.com',
     password: bcrypt.hashSync('1234', bcrypt.genSaltSync(10)),
-    storeId: '143e4667-a81d-12d3-c356-469311174302',
+    storeId: devStores[1].id,
     phone: '+123456789025',
     role: 'keeper',
     createdAt: new Date(),
@@ -40,7 +41,7 @@ const devUsers = [
     name: 'user 1',
     email: 'user1@gmail.com',
     password: bcrypt.hashSync('1234', bcrypt.genSaltSync(10)),
-    storeId: '143e4667-a81d-12d3-c356-469311174301',
+    storeId: devStores[0].id,
     phone: '+123456789026',
     role: 'user',
     createdAt: new Date(),
@@ -49,8 +50,10 @@ const devUsers = [
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
+  baseUsers,
+  devUsers,
   async up(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const users = isDevelopment ? baseUsers.concat(devUsers) : baseUsers;
 
@@ -59,7 +62,7 @@ module.exports = {
     }
   },
   async down(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const userIds = (isDevelopment ? baseUsers.concat(devUsers) : baseUsers).map((user) => user.id);
 

@@ -1,8 +1,13 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-dotenv.config();
+
+dotenv.config({ quiet: true });
 
 async function sendEmail(user_email: string, subject: string, text: string): Promise<boolean> {
+  if (process.env.NODE_ENV === 'test') {
+    return true;
+  }
+
   // Create a transporter using SMTP
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -26,7 +31,6 @@ async function sendEmail(user_email: string, subject: string, text: string): Pro
   try {
     // Send the email
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
     return true;
   } catch (error) {
     console.error('Error sending email:', error);

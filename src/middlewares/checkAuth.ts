@@ -85,11 +85,18 @@ export class AuthMiddleware extends BaseMiddleware {
 
       // store the token in the cookies
       // multiply by 1000 to convert to milliseconds as the expiresIn is in seconds
-      res.cookie('AuthToken', token, { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenDuration * 1000 });
+      const isSecureCookie = process.env.NODE_ENV === 'production';
+      const sameSiteOption = isSecureCookie ? 'none' : 'lax';
+      res.cookie('AuthToken', token, {
+        httpOnly: true,
+        secure: isSecureCookie,
+        sameSite: sameSiteOption,
+        maxAge: tokenDuration * 1000,
+      });
       res.cookie('AuthTokenExists', true, {
         httpOnly: false,
-        secure: true,
-        sameSite: 'none',
+        secure: isSecureCookie,
+        sameSite: sameSiteOption,
         maxAge: tokenDuration * 1000,
       });
     }

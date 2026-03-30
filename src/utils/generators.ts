@@ -114,8 +114,13 @@ export const generateReport = ({
   };
   const salesRows = sales.map((sale) => {
     const store = sale.store;
-    const storeVariations = sale.variations;
-    const { totalCostPrice, totalSellingPrice, products } = storeVariations.reduce(
+    const storeVariations = sale.variations || [];
+    const storeMixtures = sale.mixtures || [];
+    const {
+      totalCostPrice: baseCostPrice,
+      totalSellingPrice: baseSellingPrice,
+      products,
+    } = storeVariations.reduce(
       (acc, storeVariation) => {
         // Collect the salesProducts table data
         const productName = storeVariation.variation.product.name;
@@ -135,8 +140,6 @@ export const generateReport = ({
         salesProductsTotals.sellingPrice += productSellingPrice;
         salesProductsTotals.profitLoss += productProfitLoss;
 
-        console.log(productName, productSellingPrice, 'product selling price');
-
         // Collect the sales table data
         acc.products.push({
           name: productName,
@@ -153,6 +156,36 @@ export const generateReport = ({
         totalCostPrice: number;
       }
     );
+    let totalCostPrice = baseCostPrice;
+    let totalSellingPrice = baseSellingPrice;
+    storeMixtures.forEach((saleMixture) => {
+      const mixture = saleMixture.mixture;
+      if (!mixture) return;
+      const mixtureQuantity = saleMixture.quantity || 0;
+      const mixtureName = mixture.name;
+      const mixtureCostPrice = parseFloat(`${mixture.costPrice}`) * mixtureQuantity;
+      const mixtureSellingPrice = parseFloat(`${mixture.sellingPrice}`) * mixtureQuantity;
+      const mixtureProfitLoss = mixtureSellingPrice - mixtureCostPrice;
+
+      salesProducts[mixtureName] = {
+        count: (salesProducts[mixtureName]?.count || 0) + mixtureQuantity,
+        costPrice: (salesProducts[mixtureName]?.costPrice || 0) + mixtureCostPrice,
+        sellingPrice: (salesProducts[mixtureName]?.sellingPrice || 0) + mixtureSellingPrice,
+        profitLoss: (salesProducts[mixtureName]?.profitLoss || 0) + mixtureProfitLoss,
+      };
+      salesProductsTotals.count += mixtureQuantity;
+      salesProductsTotals.costPrice += mixtureCostPrice;
+      salesProductsTotals.sellingPrice += mixtureSellingPrice;
+      salesProductsTotals.profitLoss += mixtureProfitLoss;
+
+      products.push({
+        name: mixtureName,
+        variation: 'Mixture',
+        price: mixtureSellingPrice,
+      });
+      totalCostPrice += mixtureCostPrice;
+      totalSellingPrice += mixtureSellingPrice;
+    });
     paymentsObjRows[sale.paymentMethod] = {
       salesCount: (paymentsObjRows[sale.paymentMethod]?.salesCount || 0) + 1,
       amount: (paymentsObjRows[sale.paymentMethod]?.amount || 0) + totalSellingPrice,
@@ -164,7 +197,7 @@ export const generateReport = ({
     totalSalesProfitLoss += profitLoss;
     return {
       doneAt: format(new Date(sale.createdAt), 'E dd/MM/yyyy HH:mm'),
-      store: store.name,
+      store: store?.name || 'Deleted Store',
       products,
       totalCostPrice,
       totalSellingPrice,
@@ -186,7 +219,7 @@ export const generateReport = ({
         totalTransactionsIncomes += amount;
         acc.incomeTransactionsRows.push({
           doneAt: format(new Date(transaction.createdAt), 'E dd/MM/yyyy HH:mm'),
-          store: store.name,
+          store: store?.name || 'Deleted Store',
           method: transaction.paymentMethod,
           type,
           action,
@@ -196,7 +229,7 @@ export const generateReport = ({
         totalTransactionsExpenses += amount;
         acc.expenseTransactionsRows.push({
           doneAt: format(new Date(transaction.createdAt), 'E dd/MM/yyyy HH:mm'),
-          store: store.name,
+          store: store?.name || 'Deleted Store',
           method: transaction.paymentMethod,
           type,
           action,

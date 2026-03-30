@@ -1,4 +1,5 @@
-
+const { devSales } = require('./20240413095216-Sale');
+const { devVariations } = require('./20240413074122-Variation');
 
 const baseSaleProducts = [];
 const devSaleProducts = [
@@ -6,15 +7,15 @@ const devSaleProducts = [
   {
     id: '5d432d64-5991-4c00-9f70-7bc89e4375e0',
     quantity: 20,
-    saleId: '7ffdcde2-a8dc-427f-bac2-863f52401fb0',
-    variationId: '3f33b9d1-9b11-4d85-a3c3-8d1676a67110',
+    saleId: devSales[0].id,
+    variationId: devVariations[0].id,
     createdAt: new Date().toISOString(),
   },
   {
     id: '5d432d64-5991-4c00-9f70-7bc89e4375e1',
     quantity: 10,
-    saleId: '7ffdcde2-a8dc-427f-bac2-863f52401fb0',
-    variationId: '3f33b9d1-9b11-4d85-a3c3-8d1676a67111',
+    saleId: devSales[0].id,
+    variationId: devVariations[1].id,
     createdAt: new Date().toISOString(),
   },
 
@@ -22,15 +23,15 @@ const devSaleProducts = [
   {
     id: '5d432d64-5991-4c00-9f70-7bc89e4375e2',
     quantity: 20,
-    saleId: 'e485f1c7-5a0b-4b9d-bcf6-5b62f3a2bc9a',
-    variationId: '6b79bb67-593b-4ec3-b3c9-80279b1e053d',
+    saleId: devSales[1].id,
+    variationId: devVariations[3].id,
     createdAt: new Date().toISOString(),
   },
   {
     id: '5d432d64-5991-4c00-9f70-7bc89e4375e3',
     quantity: 10,
-    saleId: 'e485f1c7-5a0b-4b9d-bcf6-5b62f3a2bc9a',
-    variationId: 'fb8b9b0b-7b4e-4188-b0e4-90b14ff3fc54',
+    saleId: devSales[1].id,
+    variationId: devVariations[4].id,
     createdAt: new Date().toISOString(),
   },
 
@@ -38,23 +39,25 @@ const devSaleProducts = [
   {
     id: '5d432d64-5991-4c00-9f70-7bc89e4375e4',
     quantity: 20,
-    saleId: '7ffdcde2-a8dc-427f-bac2-863f52401fc0',
-    variationId: '6b79bb67-593b-4ec3-b3c9-80279b1e053d',
+    saleId: devSales[2].id,
+    variationId: devVariations[3].id,
     createdAt: new Date().toISOString(),
   },
   {
     id: '5d432d64-5991-4c00-9f70-7bc89e4375e5',
     quantity: 10,
-    saleId: '7ffdcde2-a8dc-427f-bac2-863f52401fc0',
-    variationId: '3f33b9d1-9b11-4d85-a3c3-8d1676a67112',
+    saleId: devSales[2].id,
+    variationId: devVariations[2].id,
     createdAt: new Date().toISOString(),
   },
 ];
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
+  baseSaleProducts,
+  devSaleProducts,
   async up(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const saleProducts = isDevelopment ? baseSaleProducts.concat(devSaleProducts) : baseSaleProducts;
 
@@ -63,7 +66,7 @@ module.exports = {
     }
   },
   async down(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const saleProductIds = (isDevelopment ? baseSaleProducts.concat(devSaleProducts) : baseSaleProducts).map(
       (saleProduct) => saleProduct.id

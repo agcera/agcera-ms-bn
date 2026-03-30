@@ -65,9 +65,15 @@ class AnalyticsController extends BaseController {
     const salesByDate = sales.reduce(
       (acc, sale) => {
         const date = sale.createdAt.toISOString();
-        acc[date] =
-          (acc[date] || 0) +
-          sale.variations.reduce((acc, variation) => acc + variation.quantity! * variation.variation.sellingPrice, 0);
+        const variationsTotal = sale.variations.reduce(
+          (total, variation) => total + variation.quantity! * variation.variation.sellingPrice,
+          0
+        );
+        const mixturesTotal = (sale.mixtures || []).reduce(
+          (total, mixture) => total + mixture.quantity! * mixture.mixture.sellingPrice,
+          0
+        );
+        acc[date] = (acc[date] || 0) + variationsTotal + mixturesTotal;
         return acc;
       },
       {} as { [key: string]: number }
@@ -80,6 +86,10 @@ class AnalyticsController extends BaseController {
           acc[variation.variation.product.name] =
             (acc[variation.variation.product.name] || 0) + variation.variation.number * variation.quantity!;
         });
+        (sale.mixtures || []).forEach((mixture) => {
+          if (!mixture.mixture) return;
+          acc[mixture.mixture.name] = (acc[mixture.mixture.name] || 0) + mixture.quantity!;
+        });
         return acc;
       },
       {} as { [key: string]: number }
@@ -89,9 +99,12 @@ class AnalyticsController extends BaseController {
     const productsSoldByShops = unfilteredSales.reduce(
       (acc, sale) => {
         const name = sale.store?.name || 'Deleted Store';
-        acc[name] =
-          (acc[name] || 0) +
-          sale.variations.reduce((acc, variation) => acc + variation.quantity! * variation.variation.number, 0);
+        const variationsCount = sale.variations.reduce(
+          (total, variation) => total + variation.quantity! * variation.variation.number,
+          0
+        );
+        const mixturesCount = (sale.mixtures || []).reduce((total, mixture) => total + mixture.quantity!, 0);
+        acc[name] = (acc[name] || 0) + variationsCount + mixturesCount;
         return acc;
       },
       {} as { [key: string]: number }

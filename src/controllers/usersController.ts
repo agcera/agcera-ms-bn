@@ -141,11 +141,18 @@ class UsersController extends BaseController {
     const token = generateToken({ id: user.id, role: user.role }, tokenDuration);
     // store the token in the cookies
     // multiply by 1000 to convert to milliseconds as the expiresIn is in seconds
-    res.cookie('AuthToken', token, { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenDuration * 1000 });
+    const isSecureCookie = process.env.NODE_ENV === 'production';
+    const sameSiteOption = isSecureCookie ? 'none' : 'lax';
+    res.cookie('AuthToken', token, {
+      httpOnly: true,
+      secure: isSecureCookie,
+      sameSite: sameSiteOption,
+      maxAge: tokenDuration * 1000,
+    });
     res.cookie('AuthTokenExists', true, {
       httpOnly: false,
-      secure: true,
-      sameSite: 'none',
+      secure: isSecureCookie,
+      sameSite: sameSiteOption,
       maxAge: tokenDuration * 1000,
     });
 
@@ -371,7 +378,10 @@ class UsersController extends BaseController {
     }
 
     // Check if email or phone are already taken
-    const duplicateUser = await userService.getOneUser({ [Op.or]: [email && { email }, { phone }], [Op.not]: { id } });
+    const duplicateChecks = [email ? { email } : null, phone ? { phone } : null].filter(Boolean) as WhereOptions[];
+    const duplicateUser = duplicateChecks.length
+      ? await userService.getOneUser({ [Op.or]: duplicateChecks, [Op.not]: { id } })
+      : null;
     if (duplicateUser) {
       let message = '';
       if (duplicateUser.email === email) {
@@ -387,18 +397,20 @@ class UsersController extends BaseController {
     }
 
     // Check store exists
-    const store = await StoreServices.getStoreById(storeId);
-    if (storeId && (!store || store.name === 'expired')) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'No Store found with the provided storeId.',
-      });
-    }
-    if (user.role === 'admin' && storeId && store?.name !== 'main') {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'An admin can only be registered in the main store.',
-      });
+    if (storeId) {
+      const store = await StoreServices.getStoreById(storeId);
+      if (!store || store.name === 'expired') {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'No Store found with the provided storeId.',
+        });
+      }
+      if (user.role === 'admin' && store.name !== 'main') {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'An admin can only be registered in the main store.',
+        });
+      }
     }
 
     // upload the new image

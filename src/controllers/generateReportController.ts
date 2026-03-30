@@ -93,6 +93,7 @@ class GenerateReportController extends BaseController {
     // Open a new page
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     });
     const page = await browser.newPage();
 
@@ -109,12 +110,14 @@ class GenerateReportController extends BaseController {
     await page.setContent(htmlContent);
 
     // Generate PDF
-    const pdfBuffer = await page.pdf({ printBackground: true, margin: { top: 20, bottom: 20 } });
+    const pdfArrayBuffer = await page.pdf({ printBackground: true, margin: { top: 20, bottom: 20 } });
     await browser.close();
 
-    res.setHeader('Content-Disposition', 'filename="report.pdf"');
+    const pdfBuffer = Buffer.from(pdfArrayBuffer);
+    res.setHeader('Content-Disposition', 'inline; filename="report.pdf"');
     res.setHeader('Content-Type', 'application/pdf');
-    res.send(pdfBuffer);
+    res.setHeader('Content-Length', pdfBuffer.length.toString());
+    res.end(pdfBuffer);
   }
 }
 

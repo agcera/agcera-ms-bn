@@ -41,8 +41,10 @@ const devStores = [
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
+  baseStores,
+  devStores,
   async up(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const stores = isDevelopment ? baseStores.concat(devStores) : baseStores;
 
@@ -52,7 +54,7 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const storeIds = (isDevelopment ? baseStores.concat(devStores) : baseStores).map((store) => store.id);
 

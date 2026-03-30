@@ -27,8 +27,10 @@ const devClients = [
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
+  baseClients,
+  devClients,
   async up(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const clients = isDevelopment ? baseClients.concat(devClients) : baseClients;
 
@@ -38,7 +40,7 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const clientIds = (isDevelopment ? baseClients.concat(devClients) : baseClients).map((client) => client.id);
 

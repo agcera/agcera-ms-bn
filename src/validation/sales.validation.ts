@@ -7,7 +7,8 @@ export type CreateSaleProduct = {
 };
 
 export const createSaleSchema = Joi.object({
-  variations: Joi.object().pattern(Joi.string().required(), Joi.number().integer().required()).min(1).required(),
+  variations: Joi.object().pattern(Joi.string().required(), Joi.number().integer().required()).min(1),
+  mixtures: Joi.object().pattern(Joi.string().required(), Joi.number().integer().required()).min(1),
   paymentMethod: Joi.string()
     .valid(...Object.values(PaymentMethodsEnum))
     .required(),
@@ -19,4 +20,4 @@ export const createSaleSchema = Joi.object({
   isMember: Joi.boolean().default(false),
   storeId: Joi.string().uuid().required(),
   doneOn: Joi.date(),
-});
+}).or('variations', 'mixtures');

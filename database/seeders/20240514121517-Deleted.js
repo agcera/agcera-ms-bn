@@ -1,5 +1,13 @@
 'use strict';
 
+const { devStores } = require('./20240406114830-Store');
+const { devUsers } = require('./20240406114834-User');
+const { devProducts } = require('./20240413052139-Product');
+const { devVariations } = require('./20240413074122-Variation');
+const { devSales } = require('./20240413095216-Sale');
+const { devSaleProducts } = require('./20240413100947-SaleProduct');
+const { devStoreProducts } = require('./20240413092222-StoreProduct');
+
 const baseDeleteds = [];
 const devDeleteds = [
   {
@@ -11,7 +19,7 @@ const devDeleteds = [
     }),
     description: JSON.stringify({
       store: {
-        id: '143e4667-a81d-12d3-c356-469311174301',
+        id: devStores[0].id,
         name: 'Store 2',
         location: 'Maputo 13',
         phone: '+258840000001',
@@ -21,7 +29,7 @@ const devDeleteds = [
         deletedAt: '2024-05-19T10:55:53.471Z',
         users: [
           {
-            id: '8215a8ea-cf39-4037-81e6-86f6b439dcf5',
+            id: devUsers[0].id,
             name: 'keeper 1',
             email: 'keeper1@gmail.com',
             phone: '+123456789024',
@@ -32,7 +40,7 @@ const devDeleteds = [
             isActive: true,
           },
           {
-            id: '8215a8ea-cf39-4037-81e6-86f6b439dcf7',
+            id: devUsers[2].id,
             name: 'user 1',
             email: 'user1@gmail.com',
             phone: '+123456789026',
@@ -45,19 +53,19 @@ const devDeleteds = [
         ],
         products: [
           {
-            id: 'a5aa7e8b-9306-4ff2-a19a-5ab633c206c4',
+            id: devStoreProducts[4].id,
             quantity: 50,
-            storeId: '143e4667-a81d-12d3-c356-469311174301',
-            productId: '123e4567-e89b-12d3-a456-426614174001',
+            storeId: devStores[0].id,
+            productId: devProducts[0].id,
             store: {
-              id: '143e4667-a81d-12d3-c356-469311174301',
+              id: devStores[0].id,
               name: 'Store 2',
               location: 'Maputo 13',
               phone: '+258840000001',
               isActive: true,
             },
             product: {
-              id: '123e4567-e89b-12d3-a456-426614174001',
+              id: devProducts[0].id,
               name: 'UnoProducto',
               image: 'https://placehold.co/150x100?text=image%20not%20found',
               description: 'Producto de prueba en la base de datos',
@@ -65,19 +73,19 @@ const devDeleteds = [
             },
           },
           {
-            id: 'a5aa7e8b-9306-4ff2-a19a-5ab633c206c5',
+            id: devStoreProducts[5].id,
             quantity: 50,
-            storeId: '143e4667-a81d-12d3-c356-469311174301',
-            productId: '123e4567-e89b-12d3-a456-426614174002',
+            storeId: devStores[0].id,
+            productId: devProducts[1].id,
             store: {
-              id: '143e4667-a81d-12d3-c356-469311174301',
+              id: devStores[0].id,
               name: 'Store 2',
               location: 'Maputo 13',
               phone: '+258840000001',
               isActive: true,
             },
             product: {
-              id: '123e4567-e89b-12d3-a456-426614174002',
+              id: devProducts[1].id,
               name: 'DuoProducto',
               image: 'https://placehold.co/150x100?text=image%20not%20found',
               description: 'Producto de prueba en la base de datos',
@@ -85,19 +93,19 @@ const devDeleteds = [
             },
           },
           {
-            id: 'a5aa7e8b-9306-4ff2-a19a-5ab633c206c6',
+            id: devStoreProducts[6].id,
             quantity: 10,
-            storeId: '143e4667-a81d-12d3-c356-469311174301',
-            productId: '123e4567-e89b-12d3-a456-426614174003',
+            storeId: devStores[0].id,
+            productId: devProducts[2].id,
             store: {
-              id: '143e4667-a81d-12d3-c356-469311174301',
+              id: devStores[0].id,
               name: 'Store 2',
               location: 'Maputo 13',
               phone: '+258840000001',
               isActive: true,
             },
             product: {
-              id: '123e4567-e89b-12d3-a456-426614174003',
+              id: devProducts[2].id,
               name: 'TresProducto',
               image: 'https://placehold.co/150x100?text=image%20not%20found',
               description: 'Producto de prueba en la base de datos',
@@ -105,19 +113,19 @@ const devDeleteds = [
             },
           },
           {
-            id: 'a5aa7e8b-9306-4ff2-a19a-5ab633c206c7',
+            id: devStoreProducts[7].id,
             quantity: 50,
-            storeId: '143e4667-a81d-12d3-c356-469311174301',
-            productId: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
+            storeId: devStores[0].id,
+            productId: devProducts[3].id,
             store: {
-              id: '143e4667-a81d-12d3-c356-469311174301',
+              id: devStores[0].id,
               name: 'Store 2',
               location: 'Maputo 13',
               phone: '+258840000001',
               isActive: true,
             },
             product: {
-              id: 'b3c15f17-2756-434d-a01e-0b1e7209cb47',
+              id: devProducts[3].id,
               name: 'Agcera',
               image: 'https://placehold.co/150x100?text=image%20not%20found',
               description: 'Producto de prueba en la base de datos',
@@ -134,16 +142,16 @@ const devDeleteds = [
     id: '8db3f450-3ab5-41e5-94d2-d5106930c4ad',
     description: JSON.stringify({
       sale: {
-        id: '7ffdcde2-a8dc-427f-bac2-863f52401fb0',
+        id: devSales[0].id,
         paymentMethod: 'CASH',
-        clientId: '8215a8ea-cf39-4037-81e6-86f6b439dcf7',
+        clientId: devUsers[2].id,
         clientType: 'USER',
-        storeId: '143e4667-a81d-12d3-c356-469311174301',
+        storeId: devStores[0].id,
         createdAt: '2024-05-14T17:27:52.583Z',
         updatedAt: '2024-05-18T18:21:25.236Z',
         deletedAt: '2024-05-18T18:21:25.235Z',
         store: {
-          id: '143e4667-a81d-12d3-c356-469311174301',
+          id: devStores[0].id,
           name: 'Store 2',
           location: 'Maputo 13',
           phone: '+258840000001',
@@ -151,19 +159,19 @@ const devDeleteds = [
         },
         variations: [
           {
-            id: '5d432d64-5991-4c00-9f70-7bc89e4375e0',
+            id: devSaleProducts[0].id,
             quantity: 20,
-            saleId: '7ffdcde2-a8dc-427f-bac2-863f52401fb0',
-            variationId: '3f33b9d1-9b11-4d85-a3c3-8d1676a67110',
+            saleId: devSales[0].id,
+            variationId: devVariations[0].id,
             variation: {
-              id: '3f33b9d1-9b11-4d85-a3c3-8d1676a67110',
+              id: devVariations[0].id,
               name: 'Unit',
               number: 1,
               costPrice: '100',
               sellingPrice: '200',
-              productId: '123e4567-e89b-12d3-a456-426614174001',
+              productId: devProducts[0].id,
               product: {
-                id: '123e4567-e89b-12d3-a456-426614174001',
+                id: devProducts[0].id,
                 name: 'UnoProducto',
                 image: 'https://placehold.co/150x100?text=image%20not%20found',
                 description: 'Producto de prueba en la base de datos',
@@ -172,19 +180,19 @@ const devDeleteds = [
             },
           },
           {
-            id: '5d432d64-5991-4c00-9f70-7bc89e4375e1',
+            id: devSaleProducts[1].id,
             quantity: 10,
-            saleId: '7ffdcde2-a8dc-427f-bac2-863f52401fb0',
-            variationId: '3f33b9d1-9b11-4d85-a3c3-8d1676a67111',
+            saleId: devSales[0].id,
+            variationId: devVariations[1].id,
             variation: {
-              id: '3f33b9d1-9b11-4d85-a3c3-8d1676a67111',
+              id: devVariations[1].id,
               name: 'Unit',
               number: 1,
               costPrice: '200',
               sellingPrice: '400',
-              productId: '123e4567-e89b-12d3-a456-426614174002',
+              productId: devProducts[1].id,
               product: {
-                id: '123e4567-e89b-12d3-a456-426614174002',
+                id: devProducts[1].id,
                 name: 'DuoProducto',
                 image: 'https://placehold.co/150x100?text=image%20not%20found',
                 description: 'Producto de prueba en la base de datos',
@@ -206,21 +214,21 @@ const devDeleteds = [
     id: 'f1d8d843-36b7-462e-9b05-409a1db4a9d7',
     description: JSON.stringify({
       user: {
-        id: '8215a8ea-cf39-4037-81e6-86f6b439dcf5',
+        id: devUsers[0].id,
         name: 'keeper 1',
         email: 'keeper1@gmail.com',
         phone: '+123456789024',
         gender: 'UNSPECIFIED',
         location: 'Maputo Center',
         role: 'keeper',
-        storeId: '143e4667-a81d-12d3-c356-469311174301',
+        storeId: devStores[0].id,
         image: 'https://placehold.co/150x100?text=image%20not%20found',
         isActive: true,
         createdAt: '2024-05-19T11:17:40.387Z',
         updatedAt: '2024-05-19T11:17:44.239Z',
         deletedAt: '2024-05-19T11:17:44.239Z',
         store: {
-          id: '143e4667-a81d-12d3-c356-469311174301',
+          id: devStores[0].id,
           name: 'Store 2',
           location: 'Maputo 13',
           phone: '+258840000001',
@@ -239,7 +247,7 @@ const devDeleteds = [
     id: 'f1d8d843-36b7-462e-9b05-409a1db4a9d9',
     description: JSON.stringify({
       product: {
-        id: '123e4567-e89b-12d3-a456-426614174001',
+        id: devProducts[0].id,
         name: 'UnoProducto',
         image: 'https://placehold.co/150x100?text=image%20not%20found',
         description: 'Producto de prueba en la base de datos',
@@ -249,11 +257,11 @@ const devDeleteds = [
         deletedAt: '2024-05-19T14:23:01.363Z',
         variations: [
           {
-            id: '3f33b9d1-9b11-4d85-a3c3-8d1676a67110',
+            id: devVariations[0].id,
             name: 'Unit',
             number: 1,
             sellingPrice: '200',
-            productId: '123e4567-e89b-12d3-a456-426614174001',
+            productId: devProducts[0].id,
           },
         ],
       },
@@ -269,8 +277,10 @@ const devDeleteds = [
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
+  baseDeleteds,
+  devDeleteds,
   async up(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const deleteds = isDevelopment ? baseDeleteds.concat(devDeleteds) : baseDeleteds;
 
@@ -280,7 +290,7 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    const isDevelopment = (process.env.NODE_ENV ?? 'development') === 'development';
+    const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const deletedIds = (isDevelopment ? baseDeleteds.concat(devDeleteds) : baseDeleteds).map((deleted) => deleted.id);
 
