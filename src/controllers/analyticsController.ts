@@ -15,6 +15,7 @@ import Store from '@database/models/store';
 class AnalyticsController extends BaseController {
   async getAnalytics(req: ExtendedRequest<any, any, any, any>, res: Response): Promise<Response> {
     const user = req.user!;
+    const isAdmin = user.role === UserRolesEnum.ADMIN;
 
     const { error, value } = reportSchema.validate(req.query);
 
@@ -41,7 +42,9 @@ class AnalyticsController extends BaseController {
           [Op.gte]: from.toISOString(),
           [Op.lte]: to.toISOString(),
         },
-      }
+      },
+      undefined,
+      isAdmin
     );
 
     const { sales: unfilteredSales } = await SaleServices.getAllSales(
@@ -51,7 +54,9 @@ class AnalyticsController extends BaseController {
           [Op.gte]: from.toISOString(),
           [Op.lte]: to.toISOString(),
         },
-      }
+      },
+      undefined,
+      isAdmin
     );
 
     // now for each saleDate in the array we are going to associatite it to total amount in that sale

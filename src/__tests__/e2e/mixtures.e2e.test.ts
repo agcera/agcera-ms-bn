@@ -69,4 +69,41 @@ describe('Mixtures API (e2e)', () => {
     const invalidResponse = await invalidRequest;
     expect(invalidResponse.status).toBe(400);
   });
+
+  it('exposes cost price only to admins', async () => {
+    const admin = await loginAs(seed.users.admin);
+    const keeper = await loginAs(seed.users.keeper1);
+
+    const createRequest = admin.agent
+      .post('/api/v1/mixtures')
+      .field('name', `E2E Mixture Cost ${Date.now()}`)
+      .field('costPrice', '10')
+      .field('sellingPrice', '20')
+      .field('description', 'E2E mixture')
+      .field('items[0][productId]', seed.products.uno.id)
+      .field('items[0][number]', '1')
+      .attach('image', sampleImage(), 'mixture.png');
+
+    const createResponse = await createRequest;
+    expect(createResponse.status).toBe(201);
+    const mixtureId = createResponse.body.data.id;
+
+    const adminSingle = await admin.agent.get(`/api/v1/mixtures/${mixtureId}`);
+    expect(adminSingle.status).toBe(200);
+    expect(adminSingle.body.data.costPrice).toBeDefined();
+
+    const keeperSingle = await keeper.agent.get(`/api/v1/mixtures/${mixtureId}`);
+    expect(keeperSingle.status).toBe(200);
+    expect(keeperSingle.body.data.costPrice).toBeUndefined();
+
+    const adminList = await admin.agent.get('/api/v1/mixtures');
+    expect(adminList.status).toBe(200);
+    const adminMixture = adminList.body.data.mixtures.find((m: { id: string }) => m.id === mixtureId);
+    expect(adminMixture?.costPrice).toBeDefined();
+
+    const keeperList = await keeper.agent.get('/api/v1/mixtures');
+    expect(keeperList.status).toBe(200);
+    const keeperMixture = keeperList.body.data.mixtures.find((m: { id: string }) => m.id === mixtureId);
+    expect(keeperMixture?.costPrice).toBeUndefined();
+  });
 });

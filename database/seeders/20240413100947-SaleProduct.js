@@ -52,6 +52,24 @@ const devSaleProducts = [
   },
 ];
 
+const saleTotalsById = devSaleProducts.reduce((acc, saleProduct) => {
+  const variation = devVariations.find((item) => item.id === saleProduct.variationId);
+  const sellingPrice = Number(variation?.sellingPrice || 0);
+  acc[saleProduct.saleId] = (acc[saleProduct.saleId] || 0) + saleProduct.quantity * sellingPrice;
+  return acc;
+}, {});
+
+const devSalePayments = Object.entries(saleTotalsById).map(([saleId, amount]) => {
+  const sale = devSales.find((item) => item.id === saleId);
+  return {
+    id: saleId,
+    saleId,
+    paymentMethod: sale?.paymentMethod || 'CASH',
+    amount,
+    createdAt: new Date().toISOString(),
+  };
+});
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   baseSaleProducts,
@@ -60,9 +78,15 @@ module.exports = {
     const isDevelopment = ['development', 'test'].includes(process.env.NODE_ENV ?? 'development');
 
     const saleProducts = isDevelopment ? baseSaleProducts.concat(devSaleProducts) : baseSaleProducts;
+    const salePayments = isDevelopment ? devSalePayments : [];
 
     if (saleProducts.length > 0) {
-      await queryInterface.bulkInsert('SaleProducts', saleProducts, {});
+      await queryInterface.sequelize.transaction(async (transaction) => {
+        await queryInterface.bulkInsert('SaleProducts', saleProducts, { transaction });
+        if (salePayments.length > 0) {
+          await queryInterface.bulkInsert('SalePayments', salePayments, { transaction });
+        }
+      });
     }
   },
   async down(queryInterface) {
@@ -72,8 +96,16 @@ module.exports = {
       (saleProduct) => saleProduct.id
     );
 
-    if (saleProductIds.length > 0) {
-      await queryInterface.bulkDelete('SaleProducts', { id: saleProductIds }, {});
-    }
+    const salePaymentIds = isDevelopment ? devSalePayments.map((payment) => payment.id) : [];
+
+    await queryInterface.sequelize.transaction(async (transaction) => {
+      if (salePaymentIds.length > 0) {
+        await queryInterface.bulkDelete('SalePayments', { id: salePaymentIds }, { transaction });
+      }
+
+      if (saleProductIds.length > 0) {
+        await queryInterface.bulkDelete('SaleProducts', { id: saleProductIds }, { transaction });
+      }
+    });
   },
 };

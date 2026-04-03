@@ -104,6 +104,7 @@ export const generateReport = ({
   let totalSalesProfitLoss: number = 0;
   let totalSalesSellingPrice: number = 0;
   let totalSalesCostPrice: number = 0;
+  let totalSalesPayments: number = 0;
   const salesProducts: {
     [key: string]: { count: number; costPrice: number; sellingPrice: number; profitLoss: number };
   } = {};
@@ -129,8 +130,8 @@ export const generateReport = ({
         const productKey = `${productName}; Var: ${variationName}`;
         const productQuantity = storeVariation.quantity || 0;
         const productCount = productQuantity * storeVariation.variation.number;
-        const productCostPrice = parseFloat(`${storeVariation.variation.costPrice}`) * productQuantity;
-        const productSellingPrice = parseFloat(`${storeVariation.variation.sellingPrice}`) * productQuantity;
+        const productCostPrice = Number(storeVariation.variation.costPrice || 0) * productQuantity;
+        const productSellingPrice = Number(storeVariation.variation.sellingPrice || 0) * productQuantity;
         const productProfitLoss = productSellingPrice - productCostPrice;
         salesProducts[productKey] = {
           count: (salesProducts[productKey]?.count || 0) + productCount,
@@ -152,8 +153,8 @@ export const generateReport = ({
           quantity,
           total,
         });
-        acc.totalCostPrice += (storeVariation.quantity || 1) * storeVariation.variation.costPrice;
-        acc.totalSellingPrice += (storeVariation.quantity || 1) * storeVariation.variation.sellingPrice;
+        acc.totalCostPrice += (storeVariation.quantity || 1) * Number(storeVariation.variation.costPrice || 0);
+        acc.totalSellingPrice += (storeVariation.quantity || 1) * Number(storeVariation.variation.sellingPrice || 0);
         return acc;
       },
       { products: [], totalCostPrice: 0, totalSellingPrice: 0 } as {
@@ -169,8 +170,8 @@ export const generateReport = ({
       if (!mixture) return;
       const mixtureQuantity = saleMixture.quantity || 0;
       const mixtureName = mixture.name;
-      const mixtureCostPrice = parseFloat(`${mixture.costPrice || 0}`) * mixtureQuantity;
-      const mixtureSellingPrice = parseFloat(`${mixture.sellingPrice || 0}`) * mixtureQuantity;
+      const mixtureCostPrice = Number(mixture.costPrice || 0) * mixtureQuantity;
+      const mixtureSellingPrice = Number(mixture.sellingPrice || 0) * mixtureQuantity;
       const mixtureProfitLoss = mixtureSellingPrice - mixtureCostPrice;
 
       const mixtureItems = mixture.items || [];
@@ -188,7 +189,7 @@ export const generateReport = ({
       salesProductsTotals.profitLoss += mixtureProfitLoss;
 
       const itemsLabel = mixtureItems.length
-        ? `Mixture: ${mixtureName} (${mixtureItems
+        ? `Mixture: (${mixtureItems
             .map((item) => `${item.product?.name || 'Product'} x ${item.number || 0}`)
             .join(', ')})`
         : 'Mixture';
@@ -203,11 +204,26 @@ export const generateReport = ({
       totalCostPrice += mixtureCostPrice;
       totalSellingPrice += mixtureSellingPrice;
     });
-    paymentsObjRows[sale.paymentMethod] = {
-      salesCount: (paymentsObjRows[sale.paymentMethod]?.salesCount || 0) + 1,
-      amount: (paymentsObjRows[sale.paymentMethod]?.amount || 0) + totalSellingPrice,
-      transactionsCount: paymentsObjRows[sale.paymentMethod]?.transactionsCount || 0,
-    };
+    const salePayments = sale.payments || [];
+    const saleMethods = new Set(salePayments.map((payment) => payment.paymentMethod));
+    saleMethods.forEach((method) => {
+      paymentsObjRows[method] = {
+        salesCount: (paymentsObjRows[method]?.salesCount || 0) + 1,
+        amount: paymentsObjRows[method]?.amount || 0,
+        transactionsCount: paymentsObjRows[method]?.transactionsCount || 0,
+      };
+    });
+
+    salePayments.forEach((payment) => {
+      const method = payment.paymentMethod;
+      const amount = Number(payment.amount || 0);
+      totalSalesPayments += amount;
+      paymentsObjRows[method] = {
+        salesCount: paymentsObjRows[method]?.salesCount || 0,
+        amount: (paymentsObjRows[method]?.amount || 0) + amount,
+        transactionsCount: paymentsObjRows[method]?.transactionsCount || 0,
+      };
+    });
     const profitLoss = totalSellingPrice - totalCostPrice;
     totalSalesSellingPrice += totalSellingPrice;
     totalSalesCostPrice += totalCostPrice;
@@ -219,7 +235,7 @@ export const generateReport = ({
       totalCostPrice,
       totalSellingPrice,
       profitLoss,
-      method: sale.paymentMethod,
+      payments: salePayments?.map((payment) => `${payment.paymentMethod} (${Number(payment.amount || 0)} MZN)`),
     };
   });
 
@@ -275,7 +291,7 @@ export const generateReport = ({
     }
   );
 
-  const totalPayments = totalSalesSellingPrice + totalTransactionsProfitLoss;
+  const totalPayments = totalSalesPayments + totalTransactionsProfitLoss;
 
   const netProfitLoss = totalSalesProfitLoss + totalTransactionsProfitLoss;
 
@@ -528,7 +544,7 @@ export const generateReport = ({
               <th align="left">Done at</th>
               <th align="left">Store</th>
               <th align="left">Products</th>
-              <th align="left">Payment method</th>
+              <th align="left">Payment methods</th>
               ${showCostDetails ? `<th align="left">Total Cost price</th>` : ''}
               <th align="left">Total Selling price</th>
               ${showCostDetails ? `<th align="right">Profit/Loss</th>` : ''}
@@ -536,7 +552,7 @@ export const generateReport = ({
           </thead>
           <tbody>
             ${salesRows
-              .map(({ doneAt, method, store, products, totalCostPrice, totalSellingPrice, profitLoss }) => {
+              .map(({ doneAt, payments, store, products, totalCostPrice, totalSellingPrice, profitLoss }) => {
                 return `
                   <tr class="bg-gray-50/70 *:p-2 border-b border-blue_gray-A700">
                     <td align="left">${doneAt}</td>
@@ -550,7 +566,17 @@ export const generateReport = ({
                           .join(' ')}
                       </ul>
                     </td>
-                    <td align="left">${method}</td>
+                    <td align="left">
+                      <ul>
+                        ${
+                          payments
+                            ?.map((p) => {
+                              return `<li class="w-full text-sm">${s(p)}</li>`;
+                            })
+                            ?.join(' ') || 'N/A'
+                        }
+                      </ul>
+                    </td>
                     ${showCostDetails ? `<td align="left">${totalCostPrice} MZN</td>` : ''}
                     <td align="left">${totalSellingPrice} MZN</td>
                     ${

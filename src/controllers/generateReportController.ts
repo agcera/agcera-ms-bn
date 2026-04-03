@@ -14,6 +14,8 @@ import { UserRolesEnum } from '@src/types/user.types';
 class GenerateReportController extends BaseController {
   async generate(req: ExtendedRequest<any, any, any, any>, res: Response) {
     const user = req.user!;
+    const isAdmin = user.role === UserRolesEnum.ADMIN;
+
     const { error, value } = reportSchema.validate(req.query);
     if (error) {
       return res.status(400).json({
@@ -75,7 +77,7 @@ class GenerateReportController extends BaseController {
         checkedAt: null,
       };
     }
-    const { sales } = await SaleServices.getAllSales({}, salesWhere);
+    const { sales } = await SaleServices.getAllSales({}, salesWhere, undefined, isAdmin);
 
     let transactionsWhere: WhereOptions = {
       ...(storeId && { storeId }),

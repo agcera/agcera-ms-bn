@@ -1,4 +1,5 @@
 import Mixture from '@database/models/mixture';
+import { PaymentMethodsEnum } from '@database/models/paymentMethods';
 import Sale from '@database/models/sale';
 import StoreProduct from '@database/models/storeproduct';
 import Variation from '@database/models/variation';
@@ -10,7 +11,8 @@ import { ClientTypesEnum, UserRolesEnum } from '@src/types/user.types';
 import { type Response } from 'express';
 import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
-// import { recordDeleted } from '@src/services/deleted.services';
+import { CreateSalePayment, CreateSaleRequest } from '@src/types/sales.types';
+import * as core from 'express-serve-static-core';
 
 const getNeighborSale = async (storeId: string, createdAt: Date, direction: 'prev' | 'next', excludeId?: string) => {
   return Sale.findOne({
@@ -36,6 +38,7 @@ class SalesController extends BaseController {
   async getAllSales(req: ExtendedRequest, res: Response): Promise<Response> {
     const { role: userRole, id: userId } = req.user!;
     const { storeId } = req.query;
+    const isAdmin = userRole === UserRolesEnum.ADMIN;
 
     const where: WhereOptions = storeId ? { storeId } : {};
     const include: IncludeOptions[] = [];
@@ -63,7 +66,7 @@ class SalesController extends BaseController {
         break;
     }
 
-    const { sales, total } = await SaleServices.getAllSales(req.query, where, include);
+    const { sales, total } = await SaleServices.getAllSales(req.query, where, include, isAdmin);
 
     return res.status(200).json({
       status: 200,
@@ -74,6 +77,7 @@ class SalesController extends BaseController {
   async getOneSale(req: ExtendedRequest, res: Response): Promise<Response> {
     const { role: userRole, id: userId, storeId } = req.user!;
     const { id } = req.params;
+    const isAdmin = userRole === UserRolesEnum.ADMIN;
 
     const include: IncludeOptions[] = [
       {
@@ -85,7 +89,7 @@ class SalesController extends BaseController {
         attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
       },
     ];
-    const sale = await SaleServices.getOneSale({ id }, [...include]);
+    const sale = await SaleServices.getOneSale({ id }, [...include], isAdmin);
 
     if ((userRole === 'user' && sale?.clientId !== userId) || (userRole === 'keeper' && sale?.store.id !== storeId)) {
       return res.status(403).json({
@@ -106,9 +110,13 @@ class SalesController extends BaseController {
     });
   }
 
-  async createSale(req: ExtendedRequest, res: Response): Promise<Response | undefined> {
+  async createSale(
+    req: ExtendedRequest<core.ParamsFlatDictionary, any, CreateSaleRequest>,
+    res: Response
+  ): Promise<Response | undefined> {
     const user = req.user!;
-    const { variations = {}, mixtures = {}, paymentMethod, storeId, clientName, phone, isMember, doneOn } = req.body;
+    const isAdmin = user.role === UserRolesEnum.ADMIN;
+    const { variations = {}, mixtures = {}, payments = [], storeId, clientName, phone, isMember, doneOn } = req.body;
 
     if (!Object.keys(variations).length && !Object.keys(mixtures).length) {
       return res.status(400).json({
@@ -222,7 +230,39 @@ class SalesController extends BaseController {
       }
     }
 
-    const sale = await SaleServices.createSale(variations, mixtures, paymentMethod, client.id, storeId, doneOn);
+    const totalSellingPrice =
+      chosenVariations.reduce((acc, variation) => {
+        const quantity = Number(variations[variation.id] || 0);
+        return acc + quantity * parseFloat(`${variation.sellingPrice}`);
+      }, 0) +
+      chosenMixtures.reduce((acc, mixture) => {
+        const quantity = Number(mixtures[mixture.id] || 0);
+        return acc + quantity * parseFloat(`${mixture.sellingPrice || 0}`);
+      }, 0);
+
+    if (!payments.length) {
+      return res.status(400).json({
+        status: 400,
+        message: 'Please provide payment(s) for this sale',
+      });
+    }
+
+    const totalPaymentAmount = payments.reduce((acc, payment) => acc + Number(payment.amount || 0), 0);
+    if (Math.abs(totalPaymentAmount - totalSellingPrice) > 0.01) {
+      return res.status(400).json({
+        status: 400,
+        message: 'Total payment amount does not match sale total',
+      });
+    }
+
+    const sale = await SaleServices.createSale({
+      variations,
+      mixtures,
+      payments,
+      clientId: client.id,
+      storeId,
+      doneOn,
+    }, isAdmin);
 
     const productsIds = Object.keys(productRemoved);
     for (let i = 0; i < productsIds.length; i++) {
@@ -241,7 +281,7 @@ class SalesController extends BaseController {
   async refundSale(req: ExtendedRequest, res: Response): Promise<Response> {
     const user = req.user!;
     const { id } = req.params;
-    const sale = await SaleServices.getOneSale({ id });
+    const sale = await SaleServices.getOneSale({ id }, undefined, user.role === UserRolesEnum.ADMIN);
     if (!sale) {
       return res.status(404).json({
         status: 404,

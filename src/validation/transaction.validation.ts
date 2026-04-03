@@ -1,4 +1,4 @@
-import { PaymentMethodsEnum } from '@database/models/sale';
+import { PaymentMethodsEnum } from '@database/models/paymentMethods';
 import { TransactionTypesEnum } from '@src/types/transaction.types';
 import joi from 'joi';
 

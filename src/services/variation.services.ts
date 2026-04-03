@@ -39,8 +39,13 @@ export default class VariationServices {
   static async getAllVariations(
     productId: string,
     where?: WhereOptions,
-    includes?: IncludeOptions[]
+    includes?: IncludeOptions[],
+    isAdmin?: boolean
   ): Promise<Variation[]> {
-    return Variation.findAll({ where: { productId, ...where }, include: includes });
+    return Variation.findAll({
+      where: { productId, ...where },
+      include: includes,
+      attributes: { exclude: !isAdmin ? ['costPrice'] : [] },
+    });
   }
 }

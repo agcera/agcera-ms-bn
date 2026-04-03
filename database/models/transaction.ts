@@ -11,7 +11,7 @@ import User from './user';
 import Store from './store';
 import sequelize from '@database/connection';
 import { TransactionTypesEnum } from '@src/types/transaction.types';
-import { PaymentMethodsEnum } from './sale';
+import { PaymentMethodsEnum } from './paymentMethods';
 
 class Transaction extends Model<InferAttributes<Transaction>, InferCreationAttributes<Transaction>> {
   declare readonly id: CreationOptional<string>;

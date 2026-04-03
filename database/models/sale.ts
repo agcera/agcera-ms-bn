@@ -11,21 +11,12 @@ import {
 } from 'sequelize';
 import Client from './client';
 import SaleMixture from './salemixture';
+import SalePayment from './salepayment';
 import SaleProduct from './saleproduct';
 import Store from './store';
 
-export enum PaymentMethodsEnum {
-  MPESA = 'M-PESA',
-  EMOLA = 'E-MOLA',
-  POS = 'P.O.S',
-  BIM = 'BANCO BIM',
-  BCI = 'BANCO BCI',
-  CASH = 'CASH',
-}
-
 class Sale extends Model<InferAttributes<Sale>, InferCreationAttributes<Sale>> {
   declare readonly id: CreationOptional<string>;
-  declare paymentMethod: PaymentMethodsEnum;
 
   // The client who made the sale, if he is not registered in the system use a phone number.
   declare clientId: ForeignKey<Client['id']>;
@@ -35,11 +26,13 @@ class Sale extends Model<InferAttributes<Sale>, InferCreationAttributes<Sale>> {
   declare store: NonAttribute<Store>;
   declare variations: NonAttribute<SaleProduct[]>;
   declare mixtures: NonAttribute<SaleMixture[]>;
+  declare payments: NonAttribute<SalePayment[]>;
   declare client: NonAttribute<Client>;
 
   declare static associations: {
     variations: Association<SaleProduct, Sale>;
     mixtures: Association<SaleMixture, Sale>;
+    payments: Association<SalePayment, Sale>;
     store: Association<Sale, Store>;
   };
 
@@ -57,18 +50,6 @@ Sale.init(
       primaryKey: true,
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-    },
-    paymentMethod: {
-      allowNull: false,
-      type: DataTypes.ENUM(
-        PaymentMethodsEnum.CASH,
-        PaymentMethodsEnum.BCI,
-        PaymentMethodsEnum.BIM,
-        PaymentMethodsEnum.EMOLA,
-        PaymentMethodsEnum.MPESA,
-        PaymentMethodsEnum.POS
-      ),
-      defaultValue: PaymentMethodsEnum.CASH,
     },
     clientId: {
       allowNull: true,
@@ -125,6 +106,15 @@ SaleMixture.belongsTo(Sale, {
 Sale.hasMany(SaleMixture, {
   foreignKey: 'saleId',
   as: 'mixtures',
+});
+
+SalePayment.belongsTo(Sale, {
+  foreignKey: 'saleId',
+  as: 'sale',
+});
+Sale.hasMany(SalePayment, {
+  foreignKey: 'saleId',
+  as: 'payments',
 });
 
 export default Sale;

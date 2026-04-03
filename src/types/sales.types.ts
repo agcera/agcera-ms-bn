@@ -1,4 +1,4 @@
-import { PaymentMethodsEnum } from '@database/models/sale';
+import { PaymentMethodsEnum } from '@database/models/paymentMethods';
 import { SortDirectionEnum } from './common.types';
 import { ClientTypesEnum, UserRolesEnum } from './user.types';
 
@@ -6,13 +6,20 @@ export interface CreateSaleRequestProducts {
   [key: string]: number;
 }
 
+export interface CreateSalePayment {
+  paymentMethod: PaymentMethodsEnum;
+  amount: number;
+}
+
 export interface CreateSaleRequest {
   variations?: CreateSaleRequestProducts;
   mixtures?: CreateSaleRequestProducts;
-  paymentMethod: PaymentMethodsEnum;
-  clientId: string;
-  clientType: ClientTypesEnum;
-  shopId: number;
+  payments: CreateSalePayment[];
+  phone: string;
+  clientName: string;
+  isMember: boolean;
+  storeId: string;
+  doneOn?: Date;
 }
 
 export interface GetAllRequestQuery<

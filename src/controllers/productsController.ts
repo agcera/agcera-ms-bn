@@ -260,8 +260,9 @@ export default class ProductsController extends BaseController {
   // get all variations of a product
   async getAllVariations(req: ExtendedRequest, res: Response): Promise<Response> {
     const { productId } = req.params;
+    const isAdmin = req.user?.role === UserRolesEnum.ADMIN;
 
-    const variations = await VariationServices.getAllVariations(productId);
+    const variations = await VariationServices.getAllVariations(productId, undefined, undefined, isAdmin);
 
     return res.status(200).json({
       status: 'success',

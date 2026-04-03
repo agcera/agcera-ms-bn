@@ -1,4 +1,4 @@
-import { PaymentMethodsEnum } from '@database/models/sale';
+import { PaymentMethodsEnum } from '@database/models/paymentMethods';
 import Transaction from '@database/models/transaction';
 import { GetAllRequestQuery } from '@src/types/sales.types';
 import { TransactionTypesEnum } from '@src/types/transaction.types';

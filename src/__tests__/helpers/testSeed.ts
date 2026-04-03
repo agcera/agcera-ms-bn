@@ -10,6 +10,7 @@ import ProductsMovement from '@database/models/productsmovement';
 import Sale from '@database/models/sale';
 import SaleProduct from '@database/models/saleproduct';
 import SaleMixture from '@database/models/salemixture';
+import SalePayment from '@database/models/salepayment';
 import Transaction from '@database/models/transaction';
 import Mixture from '@database/models/mixture';
 import MixtureItem from '@database/models/mixtureitem';
@@ -214,9 +215,21 @@ export const cleanupTestData = async (seed: TestSeed) => {
   const saleIds = sales.map((sale) => sale.id);
 
   if (saleIds.length) {
-    await SaleMixture.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true });
-    await SaleProduct.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true });
-    await Sale.destroy({ where: { id: { [Op.in]: saleIds } }, force: true });
+    const sequelize = Sale.sequelize;
+    if (sequelize) {
+      await sequelize.transaction(async (transaction) => {
+        await sequelize.query('SET CONSTRAINTS ALL DEFERRED', { transaction });
+        await SaleMixture.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true, transaction });
+        await SaleProduct.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true, transaction });
+        await SalePayment.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true, transaction });
+        await Sale.destroy({ where: { id: { [Op.in]: saleIds } }, force: true, transaction });
+      });
+    } else {
+      await SaleMixture.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true });
+      await SaleProduct.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true });
+      await SalePayment.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true });
+      await Sale.destroy({ where: { id: { [Op.in]: saleIds } }, force: true });
+    }
   }
 
   await Transaction.destroy({ where: { storeId: { [Op.in]: storeIds } }, force: true });

@@ -108,4 +108,58 @@ describe('Products API (e2e)', () => {
     const invalidResponse = await invalidRequest;
     expect(invalidResponse.status).toBe(400);
   });
+
+  it('exposes cost price only to admins', async () => {
+    const admin = await loginAs(seed.users.admin);
+    const keeper = await loginAs(seed.users.keeper1);
+
+    const createRequest = admin.agent
+      .post('/api/v1/products')
+      .field('name', `E2E Cost Product ${Date.now()}`)
+      .field('type', 'SPECIAL')
+      .attach('image', sampleImage(), 'product.png');
+
+    buildVariationFields('variations[0]', {
+      name: 'Alpha',
+      number: 1,
+      costPrice: 10,
+      sellingPrice: 20,
+    }).forEach(([key, value]) => createRequest.field(key, String(value)));
+
+    const createResponse = await createRequest;
+    expect(createResponse.status).toBe(201);
+    const productId = createResponse.body.data.id;
+
+    const seedMainResponse = await admin.agent.post('/api/v1/stores/addProduct').send({
+      from: 'main',
+      to: seed.stores.main.id,
+      productId,
+      quantity: 5,
+    });
+    expect(seedMainResponse.status).toBe(201);
+
+    const addToKeeperStore = await admin.agent.post('/api/v1/stores/addProduct').send({
+      from: seed.stores.main.id,
+      to: seed.stores.store2.id,
+      productId,
+      quantity: 2,
+    });
+    expect(addToKeeperStore.status).toBe(201);
+
+    const adminProduct = await admin.agent.get(`/api/v1/products/${productId}`);
+    expect(adminProduct.status).toBe(200);
+    expect(adminProduct.body.data.variations?.[0]?.costPrice).toBeDefined();
+
+    const keeperProduct = await keeper.agent.get(`/api/v1/products/${productId}`);
+    expect(keeperProduct.status).toBe(200);
+    expect(keeperProduct.body.data.variations?.[0]?.costPrice).toBeUndefined();
+
+    const adminVariations = await admin.agent.get(`/api/v1/products/${productId}/variations`);
+    expect(adminVariations.status).toBe(200);
+    expect(adminVariations.body.data?.[0]?.costPrice).toBeDefined();
+
+    const keeperVariations = await keeper.agent.get(`/api/v1/products/${productId}/variations`);
+    expect(keeperVariations.status).toBe(200);
+    expect(keeperVariations.body.data?.[0]?.costPrice).toBeUndefined();
+  });
 });

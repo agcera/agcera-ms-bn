@@ -1,7 +1,10 @@
 'use strict';
 
+const paymentMethodsEnum = ['CASH', 'M-PESA', 'E-MOLA', 'P.O.S', 'BANCO BIM', 'BANCO BCI'];
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
+  paymentMethodsEnum,
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Sales', {
       id: {
@@ -13,8 +16,8 @@ module.exports = {
       },
       paymentMethod: {
         allowNull: false,
-        type: Sequelize.ENUM('M-PESA', 'E-MOLA', 'P.O.S', 'BANCO BIM', 'BANCO BCI', 'CASH'),
-        defaultValue: 'P.O.S',
+        type: Sequelize.ENUM(...paymentMethodsEnum),
+        defaultValue: paymentMethodsEnum[0],
       },
       clientId: {
         allowNull: false,
@@ -22,7 +25,7 @@ module.exports = {
         references: {
           model: 'Clients',
           key: 'id',
-        }
+        },
       },
       storeId: {
         allowNull: true,

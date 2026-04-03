@@ -45,7 +45,8 @@ module.exports = {
     const sales = isDevelopment ? baseSales.concat(devSales) : baseSales;
 
     if (sales.length > 0) {
-      await queryInterface.bulkInsert('Sales', sales, {});
+      const salesToInsert = sales.map(({ paymentMethod, ...sale }) => sale);
+      await queryInterface.bulkInsert('Sales', salesToInsert, {});
     }
   },
   async down(queryInterface) {

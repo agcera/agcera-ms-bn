@@ -510,6 +510,9 @@ class StoresController extends BaseController {
   async collectStoreProfit(req: ExtendedRequest, res: Response): Promise<Response> {
     const { from: unformattedFrom, to: unformattedTo, storeId } = req.body;
 
+    const user = req.user!;
+    const isAdmin = user.role === UserRolesEnum.ADMIN;
+
     const from = new Date(unformattedFrom);
     const to = new Date(unformattedTo);
 
@@ -531,7 +534,7 @@ class StoresController extends BaseController {
       deletedAt: null,
     };
     if (storeId) salesWhere.storeId = storeId;
-    const storeSales = await SaleServices.getAllSales({}, salesWhere);
+    const storeSales = await SaleServices.getAllSales({}, salesWhere, undefined, isAdmin);
     if (storeSales.total) {
       SaleServices.bulkUpdateSale({ id: { [Op.in]: storeSales.sales.map((s) => s.id) } }, { checkedAt: new Date() });
     }

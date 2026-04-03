@@ -1,4 +1,4 @@
-import { PaymentMethodsEnum } from '@database/models/sale';
+import { PaymentMethodsEnum } from '@database/models/paymentMethods';
 import Transaction from '@database/models/transaction';
 import { TransactionTypesEnum } from '@src/types/transaction.types';
 import type { SuperAgentTest } from 'supertest';
