@@ -23,9 +23,21 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(Express.static('public'));
 
+// Global middleware to add the noindex header
+app.use((req, res, next) => {
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  next();
+});
+// Route to serve the robots.txt file
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain');
+  res.send('User-agent: *\nDisallow: /');
+});
+
 app.get('/', (_req, res) => {
   res.send('welcome to agcera, got to /api/v1 to access the latest API documentations');
 });
+
 app.use('/api/v1', router);
 
 app.use(globalErrorHandler);
