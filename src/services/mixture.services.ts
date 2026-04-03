@@ -13,22 +13,34 @@ export default class MixtureServices {
 
   static DEFAULT_INCLUDES: IncludeOptions[] = [this.DEFAULT_ITEMS_INCLUDE];
 
-  static async getAllMixtures(queryData?: GetAllRequestQuery, where?: WhereOptions, includes?: IncludeOptions[]) {
+  static async getAllMixtures(
+    queryData?: GetAllRequestQuery,
+    where?: WhereOptions,
+    includes?: IncludeOptions[],
+    isAdmin?: boolean
+  ) {
     const include: IncludeOptions[] = [...this.DEFAULT_INCLUDES, ...(includes ?? [])];
     const { count, rows } = await Mixture.findAndCountAll(
-      findQueryGenerators(Mixture.getAttributes(), queryData, { where, include })
+      findQueryGenerators(Mixture.getAttributes(), queryData, {
+        where,
+        include,
+        attributes: { exclude: !isAdmin ? ['costPrice'] : [] },
+      })
     );
 
     return { total: count, mixtures: rows };
   }
 
-  static async getMixtureByPk(id: string, includes?: IncludeOptions[]) {
-    return Mixture.findByPk(id, { include: [...this.DEFAULT_INCLUDES, ...(includes || [])] });
+  static async getMixtureByPk(id: string, includes?: IncludeOptions[], isAdmin?: boolean) {
+    return Mixture.findByPk(id, {
+      include: [...this.DEFAULT_INCLUDES, ...(includes || [])],
+      attributes: { exclude: !isAdmin ? ['costPrice'] : [] },
+    });
   }
 
-  static async getOneMixture(where?: WhereOptions, includes?: IncludeOptions[]) {
+  static async getOneMixture(where?: WhereOptions, includes?: IncludeOptions[], isAdmin?: boolean) {
     const include: IncludeOptions[] = [...this.DEFAULT_INCLUDES, ...(includes ?? [])];
-    return Mixture.findOne({ where, include });
+    return Mixture.findOne({ where, include, attributes: { exclude: !isAdmin ? ['costPrice'] : [] } });
   }
 
   static async createMixture(data: any) {

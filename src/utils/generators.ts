@@ -169,8 +169,8 @@ export const generateReport = ({
       if (!mixture) return;
       const mixtureQuantity = saleMixture.quantity || 0;
       const mixtureName = mixture.name;
-      const mixtureCostPrice = parseFloat(`${mixture.costPrice}`) * mixtureQuantity;
-      const mixtureSellingPrice = parseFloat(`${mixture.sellingPrice}`) * mixtureQuantity;
+      const mixtureCostPrice = parseFloat(`${mixture.costPrice || 0}`) * mixtureQuantity;
+      const mixtureSellingPrice = parseFloat(`${mixture.sellingPrice || 0}`) * mixtureQuantity;
       const mixtureProfitLoss = mixtureSellingPrice - mixtureCostPrice;
 
       const mixtureItems = mixture.items || [];

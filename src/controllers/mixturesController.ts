@@ -7,25 +7,28 @@ import { Request, Response } from 'express';
 import { IncludeOptions, Op } from 'sequelize';
 import { BaseController } from '.';
 import { recordDeleted } from '@src/services/history.services';
+import { UserRolesEnum } from '@src/types/user.types';
 
 export default class MixturesController extends BaseController {
   async getAllMixtures(req: ExtendedRequest, res: Response): Promise<Response> {
-    const { mixtures, total } = await MixtureServices.getAllMixtures(req.query);
+    const isAdmin = req.user?.role === UserRolesEnum.ADMIN;
+    const { mixtures, total } = await MixtureServices.getAllMixtures(req.query, undefined, undefined, isAdmin);
     return res.status(200).json({ status: 'success', data: { mixtures, total } });
   }
 
   async getOneMixture(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
-    const mixture = await MixtureServices.getMixtureByPk(id);
+    const isAdmin = req.user?.role === UserRolesEnum.ADMIN;
+    const mixture = await MixtureServices.getMixtureByPk(id, undefined, isAdmin);
     if (!mixture) {
       return res.status(404).json({ status: 'fail', message: 'Mixture not found' });
     }
     return res.status(200).json({ status: 'success', data: mixture });
   }
 
-  async createMixture(req: Request, res: Response): Promise<Response> {
+  async createMixture(req: ExtendedRequest, res: Response): Promise<Response> {
     const { name, items, costPrice, sellingPrice, description } = req.body;
-    const existing = await MixtureServices.getOneMixture({ name });
+    const existing = await MixtureServices.getOneMixture({ name }, undefined, true);
     if (existing) {
       return res.status(400).json({ status: 'fail', message: 'Mixture with the provided name already exists' });
     }
@@ -63,15 +66,17 @@ export default class MixturesController extends BaseController {
   async updateMixture(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
     const { name, items, costPrice, sellingPrice, description } = req.body;
-    const existingMixture = await MixtureServices.getMixtureByPk(id, [
-      { association: 'sales', attributes: ['id'] },
-    ] as IncludeOptions[]);
+    const existingMixture = await MixtureServices.getMixtureByPk(
+      id,
+      [{ association: 'sales', attributes: ['id'] }] as IncludeOptions[],
+      true
+    );
     if (!existingMixture) {
       return res.status(404).json({ status: 'fail', message: 'Mixture not found' });
     }
 
     if (name) {
-      const duplicate = await MixtureServices.getOneMixture({ name, id: { [Op.not]: id } });
+      const duplicate = await MixtureServices.getOneMixture({ name, id: { [Op.not]: id } }, undefined, true);
       if (duplicate) {
         return res.status(400).json({ status: 'fail', message: 'Mixture with the provided name already exists' });
       }
@@ -123,9 +128,11 @@ export default class MixturesController extends BaseController {
   async deleteMixture(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
     const user = req.user!;
-    const existingMixture = await MixtureServices.getMixtureByPk(id, [
-      { association: 'sales', attributes: ['id'] },
-    ] as IncludeOptions[]);
+    const existingMixture = await MixtureServices.getMixtureByPk(
+      id,
+      [{ association: 'sales', attributes: ['id'] }] as IncludeOptions[],
+      true
+    );
     if (!existingMixture) {
       return res.status(404).json({ status: 'fail', message: 'Mixture not found' });
     }
