@@ -10,6 +10,7 @@ import puppeteer from 'puppeteer';
 import { IncludeOptions, Op, WhereOptions } from 'sequelize';
 import { BaseController } from '.';
 import { UserRolesEnum } from '@src/types/user.types';
+import { baseStores } from '@database/seeders/20240406114830-Store.js';
 
 class GenerateReportController extends BaseController {
   async generate(req: ExtendedRequest<any, any, any, any>, res: Response) {
@@ -37,13 +38,15 @@ class GenerateReportController extends BaseController {
     if (storeId) {
       store = await StoreServices.getStoreById(storeId);
     }
+    const expiredStoreId = baseStores.find((s) => s.name.toLowerCase() === 'expired')?.id;
 
     // get remaining products
     const include: IncludeOptions = {
       association: 'stores',
-      where: { ...(storeId && { storeId: storeId }) },
+      where: { [Op.and]: [{ storeId: { [Op.not]: expiredStoreId } }, storeId && { storeId }].filter(Boolean) },
       required: true,
     };
+
     const { products } = await ProductServices.getAllProducts({}, {}, [include]);
     const remainingProducts = products.reduce(
       (acc, product) => {

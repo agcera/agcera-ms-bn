@@ -127,7 +127,7 @@ export const generateReport = ({
         // Collect the salesProducts table data
         const productName = storeVariation.variation.product.name;
         const variationName = storeVariation.variation.name;
-        const productKey = `${productName}; Var: ${variationName}`;
+        const productKey = `${productName}; Var: ${variationName} (${storeVariation.variation.number})`;
         const productQuantity = storeVariation.quantity || 0;
         const productCount = productQuantity * storeVariation.variation.number;
         const productCostPrice = Number(storeVariation.variation.costPrice || 0) * productQuantity;
@@ -149,7 +149,7 @@ export const generateReport = ({
         const total = quantity * storeVariation.variation.sellingPrice;
         acc.products.push({
           name: productName,
-          label: `Var: ${storeVariation.variation.name}`,
+          label: `Var: ${storeVariation.variation.name} (${storeVariation.variation.number})`,
           quantity,
           total,
         });
@@ -527,7 +527,7 @@ export const generateReport = ({
             )
             .join(' ')}
             <tr class="bg-gray-100 *:py-3">
-              <td align="left" class="pl-2">Total selling price</td>
+              <td align="left" class="pl-2">Total</td>
               <td align="center" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.count, 0)}</td>
               <td align="right" class="pr-2">${Object.values(remainingProducts).reduce((acc, p) => acc + p.price * p.count, 0)} MZN</td>
             </tr>
@@ -561,7 +561,7 @@ export const generateReport = ({
                       <ul>
                         ${products
                           .map(({ name, label, quantity }, index) => {
-                            return `<li class="w-full ${index % 2 === 0 ? 'bg-[#E6EEF5]' : 'bg-[#CFCFCF]'} px-2 my-1">${s(name)}; ${s(label)}; x ${quantity}</li>`;
+                            return `<li class="w-full flex flex-wrap text-xs leading-none ${index % 2 === 0 ? 'bg-[#E6EEF5]' : 'bg-[#CFCFCF]'} px-2 py-0.5 my-1">${s(name)}; ${s(label)}; x${quantity}</li>`;
                           })
                           .join(' ')}
                       </ul>

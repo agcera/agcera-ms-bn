@@ -39,7 +39,7 @@ const devStores = [
   },
 ];
 
-/** @type {import('sequelize-cli').Migration} */
+/** @type {import('sequelize-cli').Migration & { baseStores: any[]; devStores: any[] }} */
 module.exports = {
   baseStores,
   devStores,

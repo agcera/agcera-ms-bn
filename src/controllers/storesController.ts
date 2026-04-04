@@ -12,6 +12,8 @@ import ProductsMovement from '@database/models/productsmovement';
 import { recordDeleted } from '@src/services/history.services';
 import SaleServices from '@src/services/sale.services';
 import TransactionServices from '@src/services/transaction.services';
+import { TransactionTypesEnum } from '@src/types/transaction.types';
+import { PaymentMethodsEnum } from '@database/models/paymentMethods';
 
 class StoresController extends BaseController {
   async createStore(req: Request, res: Response): Promise<Response> {
@@ -377,7 +379,7 @@ class StoresController extends BaseController {
   async addProductToStore(req: ExtendedRequest, res: Response): Promise<Response> {
     const { productId, quantity, from, to } = req.body;
 
-    // check if the stores we want to take froma nd to exist
+    // check if the stores we want to take from exists
 
     // check if the product exist
     const productExist = await ProductServices.getProductByPk(productId);
@@ -395,6 +397,12 @@ class StoresController extends BaseController {
         include: [
           {
             association: 'product',
+            include: [
+              {
+                association: 'variations',
+                attributes: { include: ['id', 'number', 'costPrice'] },
+              },
+            ],
           },
         ],
       },
@@ -455,6 +463,19 @@ class StoresController extends BaseController {
     if (!addProducts[0][1]) {
       // create relation of store products
       await StoreProduct.create({ storeId: toStore?.id, productId, quantity });
+    }
+
+    // If we are moving to expired, create an expense transaction
+    if (toStore.name === 'expired') {
+      const productVariations = product!.product!.variations;
+      await TransactionServices.createTransaction(
+        fromStore.id,
+        req.user!.id,
+        TransactionTypesEnum.EXPENSE,
+        (productVariations.find((v) => v.number === 1) || productVariations[0]).costPrice * quantity,
+        `Moved ${quantity} of ${product!.product.name} to expired store`,
+        PaymentMethodsEnum.CASH
+      );
     }
 
     // decrement the products of the source store if we are not moving products from main to main
