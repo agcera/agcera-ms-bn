@@ -127,7 +127,7 @@ export const generateReport = ({
         // Collect the salesProducts table data
         const productName = storeVariation.variation.product.name;
         const variationName = storeVariation.variation.name;
-        const productKey = `${productName}; Var: ${variationName} (${storeVariation.variation.number})`;
+        const productKey = `${productName}; Var: ${variationName}(${storeVariation.variation.number})`;
         const productQuantity = storeVariation.quantity || 0;
         const productCount = productQuantity * storeVariation.variation.number;
         const productCostPrice = Number(storeVariation.variation.costPrice || 0) * productQuantity;
@@ -149,7 +149,7 @@ export const generateReport = ({
         const total = quantity * storeVariation.variation.sellingPrice;
         acc.products.push({
           name: productName,
-          label: `Var: ${storeVariation.variation.name} (${storeVariation.variation.number})`,
+          label: `Var: ${storeVariation.variation.name}(${storeVariation.variation.number})`,
           quantity,
           total,
         });
@@ -175,7 +175,7 @@ export const generateReport = ({
       const mixtureProfitLoss = mixtureSellingPrice - mixtureCostPrice;
 
       const mixtureItems = mixture.items || [];
-      const mixtureKey = `Mixture: ${mixtureName}`;
+      const mixtureKey = `Mixture: ${mixtureName}(${saleMixture.mixture.items?.length || 0})`;
 
       salesProducts[mixtureKey] = {
         count: (salesProducts[mixtureKey]?.count || 0) + mixtureQuantity,
@@ -190,7 +190,7 @@ export const generateReport = ({
 
       const itemsLabel = mixtureItems.length
         ? `Mixture: (${mixtureItems
-            .map((item) => `${item.product?.name || 'Product'} x ${item.number || 0}`)
+            .map((item) => `${item.product?.name || 'Product'} x${item.number || 0}`)
             .join(', ')})`
         : 'Mixture';
 
@@ -235,7 +235,7 @@ export const generateReport = ({
       totalCostPrice,
       totalSellingPrice,
       profitLoss,
-      payments: salePayments?.map((payment) => `${payment.paymentMethod} (${Number(payment.amount || 0)} MZN)`),
+      payments: salePayments?.map((payment) => `${payment.paymentMethod}(${Number(payment.amount || 0)} MZN)`),
     };
   });
 

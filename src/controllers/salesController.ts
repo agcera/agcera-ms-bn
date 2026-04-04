@@ -14,26 +14,6 @@ import { BaseController } from '.';
 import { CreateSalePayment, CreateSaleRequest } from '@src/types/sales.types';
 import * as core from 'express-serve-static-core';
 
-const getNeighborSale = async (storeId: string, createdAt: Date, direction: 'prev' | 'next', excludeId?: string) => {
-  return Sale.findOne({
-    where: {
-      storeId,
-      ...(excludeId ? { id: { [Op.ne]: excludeId } } : {}),
-      createdAt: direction === 'prev' ? { [Op.lte]: createdAt } : { [Op.gte]: createdAt },
-    },
-    order: [['createdAt', direction === 'prev' ? 'DESC' : 'ASC']],
-  });
-};
-
-const isInCollectedRange = async (storeId: string, createdAt: Date, excludeId?: string) => {
-  const [prev, next] = await Promise.all([
-    getNeighborSale(storeId, createdAt, 'prev', excludeId),
-    getNeighborSale(storeId, createdAt, 'next', excludeId),
-  ]);
-
-  return Boolean(prev?.checkedAt && next?.checkedAt);
-};
-
 class SalesController extends BaseController {
   async getAllSales(req: ExtendedRequest, res: Response): Promise<Response> {
     const { role: userRole, id: userId } = req.user!;
@@ -143,8 +123,8 @@ class SalesController extends BaseController {
     }
 
     const saleDate = doneOn ? new Date(doneOn) : new Date();
-    const collectedRange = await isInCollectedRange(storeId, saleDate);
-    if (collectedRange) {
+    const lastCollectedDate = new Date(store.lastCollectedAt || 0);
+    if (saleDate <= lastCollectedDate) {
       return res.status(400).json({
         status: 400,
         message: 'Cannot create a sale in a collected time range',
@@ -255,14 +235,17 @@ class SalesController extends BaseController {
       });
     }
 
-    const sale = await SaleServices.createSale({
-      variations,
-      mixtures,
-      payments,
-      clientId: client.id,
-      storeId,
-      doneOn,
-    }, isAdmin);
+    const sale = await SaleServices.createSale(
+      {
+        variations,
+        mixtures,
+        payments,
+        clientId: client.id,
+        storeId,
+        doneOn,
+      },
+      isAdmin
+    );
 
     const productsIds = Object.keys(productRemoved);
     for (let i = 0; i < productsIds.length; i++) {

@@ -1,5 +1,4 @@
 import StoreProduct from '@database/models/storeproduct';
-import Sale from '@database/models/sale';
 import Store from '@database/models/store';
 import Variation from '@database/models/variation';
 import Mixture from '@database/models/mixture';
@@ -352,7 +351,7 @@ describe('Sales API (e2e)', () => {
     });
     expect(cashAfter.status).toBe(200);
 
-    await Sale.update({ checkedAt: new Date() }, { where: { id: [cashBefore.body.data.id, cashAfter.body.data.id] } });
+    await Store.update({ lastCollectedAt: t2 }, { where: { id: storeId } });
 
     const blockedResponse = await keeper.agent.post('/api/v1/sales').send({
       storeId,
@@ -410,14 +409,13 @@ describe('Sales API (e2e)', () => {
     });
     expect(mpesaAfter.status).toBe(200);
 
-    await Sale.update(
-      { checkedAt: new Date() },
-      { where: { id: [mpesaBefore.body.data.id, mpesaAfter.body.data.id] } }
-    );
+    await Store.update({ lastCollectedAt: mpesaT2 }, { where: { id: storeId } });
 
     const refundResponse = await keeper.agent.patch(`/api/v1/sales/${saleId}`);
     expect(refundResponse.status).toBe(200);
     expect(refundResponse.body?.message?.sale?.refundedAt || refundResponse.body?.data?.refundedAt).toBeTruthy();
+
+    await Store.update({ lastCollectedAt: new Date(0) }, { where: { id: storeId } });
   });
 
   it('creates sales with multiple payments and rejects mismatched totals', async () => {

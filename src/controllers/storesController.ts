@@ -531,11 +531,10 @@ class StoresController extends BaseController {
   async collectStoreProfit(req: ExtendedRequest, res: Response): Promise<Response> {
     const { from: unformattedFrom, to: unformattedTo, storeId } = req.body;
 
-    const user = req.user!;
-    const isAdmin = user.role === UserRolesEnum.ADMIN;
-
     const from = new Date(unformattedFrom);
-    const to = new Date(unformattedTo);
+
+    const unnormalizedTo = new Date(unformattedTo);
+    const to = unnormalizedTo > new Date() ? new Date() : unnormalizedTo;
 
     if (storeId) {
       const store = await StoreServices.getOneStore({ id: storeId });
@@ -547,37 +546,28 @@ class StoresController extends BaseController {
       }
     }
 
-    // Mark all sales profit as collected
+    // Mark all sales profit as collected upto to date
     const salesWhere: WhereOptions = {
-      createdAt: { [Op.between]: [from, to] },
+      createdAt: { [Op.lte]: to },
       checkedAt: null,
       refundedAt: null,
       deletedAt: null,
     };
     if (storeId) salesWhere.storeId = storeId;
-    const storeSales = await SaleServices.getAllSales({}, salesWhere, undefined, isAdmin);
-    if (storeSales.total) {
-      SaleServices.bulkUpdateSale({ id: { [Op.in]: storeSales.sales.map((s) => s.id) } }, { checkedAt: new Date() });
-    }
+    await SaleServices.bulkUpdateSale(salesWhere, { checkedAt: new Date() });
 
-    // Mark all transactions profit as collected
+    // Mark all transactions profit as collected upto to date
     const transactionsWhere: WhereOptions = {
-      createdAt: { [Op.between]: [from, to] },
+      createdAt: { [Op.lte]: to },
       deletedAt: null,
     };
     if (storeId) transactionsWhere.storeId = storeId;
-    const storeTransactions = await TransactionServices.getAllTransactions({}, transactionsWhere);
-    if (storeTransactions.total) {
-      TransactionServices.bulkUpdateTransactions(
-        { id: { [Op.in]: storeTransactions.transactions.map((s) => s.id) } },
-        { checked: true }
-      );
-    }
+    await TransactionServices.bulkUpdateTransactions(transactionsWhere, { checked: true });
 
     // Update the store last profit collected field
     const storesWhere: WhereOptions = {};
     if (storeId) storesWhere.id = storeId;
-    StoreServices.bulkUpdateStores(storesWhere, { lastCollectedAt: to });
+    await StoreServices.bulkUpdateStores(storesWhere, { lastCollectedAt: to });
 
     return res.status(200).json({
       status: 200,
