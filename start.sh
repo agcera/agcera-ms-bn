@@ -27,4 +27,5 @@ then
     su - postgres -c "psql -c \"ALTER USER $DEV_DB_USERNAME PASSWORD '$DEV_DB_PASSWORD';\""
 fi
 
-npm start
+# pnpm run start
+node build/server.js
