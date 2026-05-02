@@ -2,9 +2,40 @@ FROM debian:bookworm
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# install postgres
-RUN apt update --fix-missing
-RUN apt install postgresql curl ca-certificates -y
+# install postgres + chromium + puppeteer deps
+RUN apt update --fix-missing \
+    && apt install -y \
+        postgresql \
+        curl \
+        ca-certificates \
+        chromium \
+        chromium-common \
+        fonts-liberation \
+        fonts-noto-color-emoji \
+        libasound2 \
+        libatk1.0-0 \
+        libatk-bridge2.0-0 \
+        libcups2 \
+        libdrm2 \
+        libgbm1 \
+        libgtk-3-0 \
+        libnss3 \
+        libpango-1.0-0 \
+        libpangocairo-1.0-0 \
+        libu2f-udev \
+        libvulkan1 \
+        libx11-6 \
+        libx11-xcb1 \
+        libxcb1 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxext6 \
+        libxfixes3 \
+        libxkbcommon0 \
+        libxrandr2 \
+        libxss1 \
+    && if [ ! -x /usr/bin/chromium ] && [ -x /usr/bin/chromium-browser ]; then ln -s /usr/bin/chromium-browser /usr/bin/chromium; fi \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install nvm version manager
 ENV NVM_VERSION=0.39.7
@@ -34,6 +65,9 @@ COPY .sequelizerc pnpm-lock.yaml package.json server.ts start.sh tsconfig.json t
 RUN npm install -g pnpm
 RUN pnpm install
 RUN pnpm run build
+
+# install puppeteer browsers
+RUN npx puppeteer browsers install chrome
 
 # allow the start script to be executable
 RUN chmod +x start.sh
