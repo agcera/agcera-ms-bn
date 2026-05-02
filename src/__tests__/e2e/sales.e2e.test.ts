@@ -1,7 +1,7 @@
 import StoreProduct from '@database/models/storeproduct';
 import Store from '@database/models/store';
 import Variation from '@database/models/variation';
-import Mixture from '@database/models/mixture';
+import Combo from '@database/models/combo';
 import { loginAs, sampleImage } from '../helpers/http';
 import { cleanupTestData, seedTestData, type TestSeed } from '../helpers/testSeed';
 
@@ -42,17 +42,17 @@ const createSpecialProductForStore = async (agent: any, storeId: string, mainSto
   return { productId, variationId, name: createResponse.body.data.name };
 };
 
-const createMixture = async (agent: any, productId: string, itemNumber = 1) => {
+const createCombo = async (agent: any, productId: string, itemNumber = 1) => {
   const uniqueSuffix = String(Date.now()).slice(-6);
   const createRequest = agent
-    .post('/api/v1/mixtures')
-    .field('name', `E2E Mixture ${uniqueSuffix}`)
+    .post('/api/v1/combos')
+    .field('name', `E2E Combo ${uniqueSuffix}`)
     .field('costPrice', '10')
     .field('sellingPrice', '22')
-    .field('description', 'E2E mixture')
+    .field('description', 'E2E combo')
     .field('items[0][productId]', productId)
     .field('items[0][number]', String(itemNumber))
-    .attach('image', sampleImage(), 'mixture.png');
+    .attach('image', sampleImage(), 'combo.png');
 
   const createResponse = await createRequest;
   expect(createResponse.status).toBe(201);
@@ -68,9 +68,9 @@ const getVariationSellingPrice = async (variationId: string) => {
   return Number(variation?.sellingPrice || 0);
 };
 
-const getMixtureSellingPrice = async (mixtureId: string) => {
-  const mixture = await Mixture.findByPk(mixtureId);
-  return Number(mixture?.sellingPrice || 0);
+const getComboSellingPrice = async (comboId: string) => {
+  const combo = await Combo.findByPk(comboId);
+  return Number(combo?.sellingPrice || 0);
 };
 
 const buildPayments = (total: number, methods: string[] = ['CASH']) => {
@@ -102,12 +102,12 @@ describe('Sales API (e2e)', () => {
     await cleanupTestData(seed);
   });
 
-  it('creates sales with standard, special, mixture, and mixed items', async () => {
+  it('creates sales with standard, special, combo, and mixed items', async () => {
     const admin = await loginAs(seed.users.admin);
     const keeper = await loginAs(seed.users.keeper1);
 
     const special = await createSpecialProductForStore(admin.agent, seed.stores.store2.id, seed.stores.main.id);
-    const mixture = await createMixture(admin.agent, seed.products.uno.id);
+    const combo = await createCombo(admin.agent, seed.products.uno.id);
 
     const standardTotal =
       (await getVariationSellingPrice(seed.variations.unoUnit.id)) * 2 +
@@ -146,24 +146,24 @@ describe('Sales API (e2e)', () => {
     expect(specialSaleResponse.body.data.variations).toHaveLength(1);
     expect(specialSaleResponse.body.data.variations[0]?.variation?.product?.name).toContain('E2E Special');
 
-    const mixtureTotal = (await getMixtureSellingPrice(mixture.id)) * 2;
-    const mixtureSaleResponse = await keeper.agent.post('/api/v1/sales').send({
+    const comboTotal = (await getComboSellingPrice(combo.id)) * 2;
+    const comboSaleResponse = await keeper.agent.post('/api/v1/sales').send({
       storeId: seed.stores.store2.id,
-      payments: buildPayments(mixtureTotal, ['CASH']),
-      clientName: 'E2E Client Mixture',
+      payments: buildPayments(comboTotal, ['CASH']),
+      clientName: 'E2E Client Combo',
       phone: '+258840000335',
       isMember: false,
-      mixtures: {
-        [mixture.id]: 2,
+      combos: {
+        [combo.id]: 2,
       },
     });
 
-    expect(mixtureSaleResponse.status).toBe(200);
-    expect(mixtureSaleResponse.body.data.mixtures).toHaveLength(1);
-    expect(mixtureSaleResponse.body.data.mixtures[0]?.mixture?.name).toBe(mixture.name);
+    expect(comboSaleResponse.status).toBe(200);
+    expect(comboSaleResponse.body.data.combos).toHaveLength(1);
+    expect(comboSaleResponse.body.data.combos[0]?.combo?.name).toBe(combo.name);
 
     const mixedTotal =
-      (await getVariationSellingPrice(seed.variations.unoUnit.id)) * 1 + (await getMixtureSellingPrice(mixture.id)) * 1;
+      (await getVariationSellingPrice(seed.variations.unoUnit.id)) * 1 + (await getComboSellingPrice(combo.id)) * 1;
     const mixedSaleResponse = await keeper.agent.post('/api/v1/sales').send({
       storeId: seed.stores.store2.id,
       payments: buildPayments(mixedTotal, ['CASH']),
@@ -173,39 +173,39 @@ describe('Sales API (e2e)', () => {
       variations: {
         [seed.variations.unoUnit.id]: 1,
       },
-      mixtures: {
-        [mixture.id]: 1,
+      combos: {
+        [combo.id]: 1,
       },
     });
 
     expect(mixedSaleResponse.status).toBe(200);
     expect(mixedSaleResponse.body.data.variations).toHaveLength(1);
-    expect(mixedSaleResponse.body.data.mixtures).toHaveLength(1);
+    expect(mixedSaleResponse.body.data.combos).toHaveLength(1);
   });
 
-  it('updates store quantities for mixture sales and refunds', async () => {
+  it('updates store quantities for combo sales and refunds', async () => {
     const admin = await loginAs(seed.users.admin);
     const keeper = await loginAs(seed.users.keeper1);
 
-    const mixture = await createMixture(admin.agent, seed.products.uno.id, 2);
+    const combo = await createCombo(admin.agent, seed.products.uno.id, 2);
     const storeId = seed.stores.store2.id;
     const productId = seed.products.uno.id;
 
     const beforeQuantity = await getStoreProductQuantity(storeId, productId);
 
     const saleTotal =
-      (await getVariationSellingPrice(seed.variations.unoUnit.id)) * 1 + (await getMixtureSellingPrice(mixture.id)) * 2;
+      (await getVariationSellingPrice(seed.variations.unoUnit.id)) * 1 + (await getComboSellingPrice(combo.id)) * 2;
     const saleResponse = await keeper.agent.post('/api/v1/sales').send({
       storeId,
       payments: buildPayments(saleTotal, ['CASH']),
-      clientName: 'E2E Client Mixture Inventory',
+      clientName: 'E2E Client Combo Inventory',
       phone: '+258840000339',
       isMember: false,
       variations: {
         [seed.variations.unoUnit.id]: 1,
       },
-      mixtures: {
-        [mixture.id]: 2,
+      combos: {
+        [combo.id]: 2,
       },
     });
 
@@ -274,7 +274,7 @@ describe('Sales API (e2e)', () => {
     expect(forbiddenResponse.status).toBe(403);
   });
 
-  it('blocks sales when product or mixture stock is insufficient', async () => {
+  it('blocks sales when product or combo stock is insufficient', async () => {
     const admin = await loginAs(seed.users.admin);
     const keeper = await loginAs(seed.users.keeper1);
 
@@ -293,22 +293,22 @@ describe('Sales API (e2e)', () => {
     expect(overProductResponse.status).toBe(400);
     expect(overProductResponse.body?.message).toContain('not available');
 
-    const mixture = await createMixture(admin.agent, seed.products.uno.id, 60);
+    const combo = await createCombo(admin.agent, seed.products.uno.id, 60);
 
-    const overMixtureTotal = (await getMixtureSellingPrice(mixture.id)) * 2;
-    const overMixtureResponse = await keeper.agent.post('/api/v1/sales').send({
+    const overComboTotal = (await getComboSellingPrice(combo.id)) * 2;
+    const overComboResponse = await keeper.agent.post('/api/v1/sales').send({
       storeId: seed.stores.store2.id,
-      payments: buildPayments(overMixtureTotal, ['CASH']),
-      clientName: 'E2E Client Too Many Mixtures',
+      payments: buildPayments(overComboTotal, ['CASH']),
+      clientName: 'E2E Client Too Many Combos',
       phone: '+258840000341',
       isMember: false,
-      mixtures: {
-        [mixture.id]: 2,
+      combos: {
+        [combo.id]: 2,
       },
     });
 
-    expect(overMixtureResponse.status).toBe(400);
-    expect(overMixtureResponse.body?.message).toContain('not available');
+    expect(overComboResponse.status).toBe(400);
+    expect(overComboResponse.body?.message).toContain('not available');
   });
 
   it('blocks sales in collected time ranges and allows refunds after collection', async () => {

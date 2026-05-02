@@ -46,7 +46,7 @@ module.exports = {
       deletedAt: Sequelize.DATE,
     });
 
-    // Add restrictions to ensure all sum of payment methods in SalePayments equals total of Sales variations + mixtures amounts
+    // Add restrictions to ensure all sum of payment methods in SalePayments equals total of Sales variations + combos amounts
     await queryInterface.sequelize.query(`
       CREATE OR REPLACE FUNCTION validate_sale_payments() RETURNS trigger AS $$
       DECLARE
@@ -80,8 +80,8 @@ module.exports = {
           + COALESCE(
             (
               SELECT SUM(sm.quantity * m."sellingPrice")
-              FROM "SaleMixtures" sm
-              JOIN "Mixtures" m ON sm."mixtureId" = m.id
+              FROM "SaleCombos" sm
+              JOIN "Combos" m ON sm."comboId" = m.id
               WHERE sm."saleId" = v_sale_id
             ),
             0
@@ -129,10 +129,10 @@ module.exports = {
       FOR EACH ROW EXECUTE FUNCTION validate_sale_payments();
     `);
 
-    // Register triggers for SaleMixtures table actions
+    // Register triggers for SaleCombos table actions
     await queryInterface.sequelize.query(`
-      CREATE CONSTRAINT TRIGGER validate_payments_sale_mixtures_trigger
-      AFTER INSERT OR UPDATE OR DELETE ON "SaleMixtures"
+      CREATE CONSTRAINT TRIGGER validate_payments_sale_combos_trigger
+      AFTER INSERT OR UPDATE OR DELETE ON "SaleCombos"
       DEFERRABLE INITIALLY DEFERRED
       FOR EACH ROW EXECUTE FUNCTION validate_sale_payments();
     `);
@@ -147,7 +147,7 @@ module.exports = {
       'DROP TRIGGER IF EXISTS validate_payments_sale_products_trigger ON "SaleProducts";'
     );
     await queryInterface.sequelize.query(
-      'DROP TRIGGER IF EXISTS validate_payments_sale_mixtures_trigger ON "SaleMixtures";'
+      'DROP TRIGGER IF EXISTS validate_payments_sale_combos_trigger ON "SaleCombos";'
     );
     await queryInterface.sequelize.query('DROP FUNCTION IF EXISTS validate_sale_payments();');
     await queryInterface.dropTable('SalePayments');

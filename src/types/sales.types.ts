@@ -13,7 +13,7 @@ export interface CreateSalePayment {
 
 export interface CreateSaleRequest {
   variations?: CreateSaleRequestProducts;
-  mixtures?: CreateSaleRequestProducts;
+  combos?: CreateSaleRequestProducts;
   payments: CreateSalePayment[];
   phone: string;
   clientName: string;

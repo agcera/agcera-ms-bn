@@ -15,7 +15,7 @@ const paymentSchema = Joi.object({
 
 export const createSaleSchema = Joi.object({
   variations: Joi.object().pattern(Joi.string().required(), Joi.number().integer().required()).min(1),
-  mixtures: Joi.object().pattern(Joi.string().required(), Joi.number().integer().required()).min(1),
+  combos: Joi.object().pattern(Joi.string().required(), Joi.number().integer().required()).min(1),
   payments: Joi.array().items(paymentSchema).unique('paymentMethod').min(1).required(),
   phone: Joi.string()
     .pattern(/^\+\d{12}$/)
@@ -25,5 +25,5 @@ export const createSaleSchema = Joi.object({
   isMember: Joi.boolean().default(false),
   storeId: Joi.string().uuid().required(),
   doneOn: Joi.date(),
-}).or('variations', 'mixtures');
+}).or('variations', 'combos');
 createSaleSchema;

@@ -74,11 +74,11 @@ class AnalyticsController extends BaseController {
           (total, variation) => total + variation.quantity! * variation.variation.sellingPrice,
           0
         );
-        const mixturesTotal = (sale.mixtures || []).reduce(
-          (total, mixture) => total + mixture.quantity! * mixture.mixture.sellingPrice,
+        const combosTotal = (sale.combos || []).reduce(
+          (total, combo) => total + combo.quantity! * combo.combo.sellingPrice,
           0
         );
-        acc[date] = (acc[date] || 0) + variationsTotal + mixturesTotal;
+        acc[date] = (acc[date] || 0) + variationsTotal + combosTotal;
         return acc;
       },
       {} as { [key: string]: number }
@@ -91,9 +91,9 @@ class AnalyticsController extends BaseController {
           acc[variation.variation.product.name] =
             (acc[variation.variation.product.name] || 0) + variation.variation.number * variation.quantity!;
         });
-        (sale.mixtures || []).forEach((mixture) => {
-          if (!mixture.mixture) return;
-          acc[mixture.mixture.name] = (acc[mixture.mixture.name] || 0) + mixture.quantity!;
+        (sale.combos || []).forEach((combo) => {
+          if (!combo.combo) return;
+          acc[combo.combo.name] = (acc[combo.combo.name] || 0) + combo.quantity!;
         });
         return acc;
       },
@@ -108,8 +108,8 @@ class AnalyticsController extends BaseController {
           (total, variation) => total + variation.quantity! * variation.variation.number,
           0
         );
-        const mixturesCount = (sale.mixtures || []).reduce((total, mixture) => total + mixture.quantity!, 0);
-        acc[name] = (acc[name] || 0) + variationsCount + mixturesCount;
+        const combosCount = (sale.combos || []).reduce((total, combo) => total + combo.quantity!, 0);
+        acc[name] = (acc[name] || 0) + variationsCount + combosCount;
         return acc;
       },
       {} as { [key: string]: number }

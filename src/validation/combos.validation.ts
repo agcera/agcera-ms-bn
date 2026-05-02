@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-export const createMixtureSchema = Joi.object({
+export const createComboSchema = Joi.object({
   name: Joi.string().min(3).required(),
   description: Joi.string().allow('', null),
   costPrice: Joi.number().min(0).required(),
@@ -17,7 +17,7 @@ export const createMixtureSchema = Joi.object({
     .required(),
 });
 
-export const updateMixtureSchema = Joi.object({
+export const updateComboSchema = Joi.object({
   name: Joi.string().min(3),
   description: Joi.string().allow('', null),
   costPrice: Joi.number().min(0),

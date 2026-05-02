@@ -13,7 +13,7 @@ import Store from './user';
 import Variation from './variation';
 import SaleProduct from './saleproduct';
 import StoreProduct from './storeproduct';
-import MixtureItem from './mixtureitem';
+import ComboItem from './comboitem';
 
 class Product extends Model<InferAttributes<Product>, InferCreationAttributes<Product>> {
   declare id: CreationOptional<string>;
@@ -25,13 +25,13 @@ class Product extends Model<InferAttributes<Product>, InferCreationAttributes<Pr
   declare variations: NonAttribute<Variation[]>;
   declare stores?: NonAttribute<StoreProduct[]>;
   declare sales?: NonAttribute<SaleProduct[]>;
-  declare mixtureItems?: NonAttribute<MixtureItem[]>;
+  declare comboItems?: NonAttribute<ComboItem[]>;
 
   declare static associations: {
     variations: Association<Variation, Product>;
     stores: Association<StoreProduct, Store>;
     sales: Association<SaleProduct, Product>;
-    mixtureItems: Association<MixtureItem, Product>;
+    comboItems: Association<ComboItem, Product>;
   };
 
   declare readonly createdAt: CreationOptional<Date>;

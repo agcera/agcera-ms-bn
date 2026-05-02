@@ -10,7 +10,7 @@ import {
   NonAttribute,
 } from 'sequelize';
 import Client from './client';
-import SaleMixture from './salemixture';
+import SaleCombo from './salecombo';
 import SalePayment from './salepayment';
 import SaleProduct from './saleproduct';
 import Store from './store';
@@ -25,13 +25,13 @@ class Sale extends Model<InferAttributes<Sale>, InferCreationAttributes<Sale>> {
 
   declare store: NonAttribute<Store>;
   declare variations: NonAttribute<SaleProduct[]>;
-  declare mixtures: NonAttribute<SaleMixture[]>;
+  declare combos: NonAttribute<SaleCombo[]>;
   declare payments: NonAttribute<SalePayment[]>;
   declare client: NonAttribute<Client>;
 
   declare static associations: {
     variations: Association<SaleProduct, Sale>;
-    mixtures: Association<SaleMixture, Sale>;
+    combos: Association<SaleCombo, Sale>;
     payments: Association<SalePayment, Sale>;
     store: Association<Sale, Store>;
   };
@@ -99,13 +99,13 @@ Sale.hasMany(SaleProduct, {
   as: 'variations',
 });
 
-SaleMixture.belongsTo(Sale, {
+SaleCombo.belongsTo(Sale, {
   foreignKey: 'saleId',
   as: 'sale',
 });
-Sale.hasMany(SaleMixture, {
+Sale.hasMany(SaleCombo, {
   foreignKey: 'saleId',
-  as: 'mixtures',
+  as: 'combos',
 });
 
 SalePayment.belongsTo(Sale, {

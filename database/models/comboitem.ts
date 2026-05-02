@@ -8,23 +8,23 @@ import {
   Model,
   NonAttribute,
 } from 'sequelize';
-import Mixture from './mixture';
+import Combo from './combo';
 import Product from './product';
 
-class MixtureItem extends Model<InferAttributes<MixtureItem>, InferCreationAttributes<MixtureItem>> {
+class ComboItem extends Model<InferAttributes<ComboItem>, InferCreationAttributes<ComboItem>> {
   declare id: CreationOptional<string>;
-  declare mixtureId: ForeignKey<Mixture['id']>;
+  declare comboId: ForeignKey<Combo['id']>;
   declare productId: ForeignKey<Product['id']>;
   declare number: number;
 
-  declare mixture?: NonAttribute<Mixture>;
+  declare combo?: NonAttribute<Combo>;
   declare product?: NonAttribute<Product>;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | null;
 }
 
-MixtureItem.init(
+ComboItem.init(
   {
     id: {
       unique: true,
@@ -33,11 +33,11 @@ MixtureItem.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
     },
-    mixtureId: {
+    comboId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'Mixtures',
+        model: 'Combos',
         key: 'id',
       },
       onDelete: 'CASCADE',
@@ -69,20 +69,20 @@ MixtureItem.init(
   },
   {
     sequelize,
-    modelName: 'MixtureItem',
-    tableName: 'MixtureItems',
+    modelName: 'ComboItem',
+    tableName: 'ComboItems',
   }
 );
 
-MixtureItem.belongsTo(Product, {
+ComboItem.belongsTo(Product, {
   foreignKey: 'productId',
   as: 'product',
 });
-Product.hasMany(MixtureItem, {
+Product.hasMany(ComboItem, {
   foreignKey: 'productId',
-  as: 'mixtureItems',
+  as: 'comboItems',
   onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
 });
 
-export default MixtureItem;
+export default ComboItem;

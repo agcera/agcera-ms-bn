@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('MixtureItems', {
+    await queryInterface.createTable('ComboItems', {
       id: {
         unique: true,
         allowNull: false,
@@ -11,11 +11,11 @@ module.exports = {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
       },
-      mixtureId: {
+      comboId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'Mixtures',
+          model: 'Combos',
           key: 'id',
         },
         onDelete: 'CASCADE',
@@ -43,13 +43,13 @@ module.exports = {
       updatedAt: Sequelize.DATE,
     });
 
-    await queryInterface.addIndex('MixtureItems', ['mixtureId', 'productId'], {
+    await queryInterface.addIndex('ComboItems', ['comboId', 'productId'], {
       unique: true,
-      name: 'mixture_items_unique_mixture_product',
+      name: 'combo_items_unique_combo_product',
     });
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('MixtureItems');
+    await queryInterface.dropTable('ComboItems');
   },
 };

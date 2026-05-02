@@ -1,4 +1,4 @@
-import MixtureItem from '@database/models/mixtureitem';
+import ComboItem from '@database/models/comboitem';
 import Variation from '@database/models/variation';
 import { recordDeleted } from '@src/services/history.services';
 import ProductServices from '@src/services/product.services';
@@ -206,7 +206,7 @@ export default class ProductsController extends BaseController {
         include: [{ association: 'sales', required: true }],
       },
       {
-        association: 'mixtureItems',
+        association: 'comboItems',
       },
     ]);
 
@@ -231,12 +231,11 @@ export default class ProductsController extends BaseController {
       });
     }
 
-    const mixtureItemsCount = product.mixtureItems?.length ?? (await MixtureItem.count({ where: { productId: id } }));
-    if (mixtureItemsCount) {
+    const comboItemsCount = product.comboItems?.length ?? (await ComboItem.count({ where: { productId: id } }));
+    if (comboItemsCount) {
       return res.status(400).json({
         status: 'fail',
-        message:
-          'Product cannot be deleted because it is used in one or more mixtures. Remove it from all mixtures first.',
+        message: 'Product cannot be deleted because it is used in one or more combos. Remove it from all combos first.',
       });
     }
 

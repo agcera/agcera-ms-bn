@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Mixtures', {
+    await queryInterface.createTable('Combos', {
       id: {
         unique: true,
         allowNull: false,
@@ -24,7 +24,7 @@ module.exports = {
       description: {
         type: Sequelize.TEXT,
         allowNull: false,
-        defaultValue: 'Mixture description',
+        defaultValue: 'Combo description',
       },
       costPrice: {
         type: Sequelize.DECIMAL,
@@ -55,6 +55,6 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('Mixtures');
+    await queryInterface.dropTable('Combos');
   },
 };

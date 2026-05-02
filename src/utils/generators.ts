@@ -117,7 +117,7 @@ export const generateReport = ({
   const salesRows = sales.map((sale) => {
     const store = sale.store;
     const storeVariations = sale.variations || [];
-    const storeMixtures = sale.mixtures || [];
+    const storeCombos = sale.combos || [];
     const {
       totalCostPrice: baseCostPrice,
       totalSellingPrice: baseSellingPrice,
@@ -166,44 +166,42 @@ export const generateReport = ({
     );
     let totalCostPrice = baseCostPrice;
     let totalSellingPrice = baseSellingPrice;
-    storeMixtures.forEach((saleMixture) => {
-      const mixture = saleMixture.mixture;
-      if (!mixture) return;
-      const mixtureQuantity = saleMixture.quantity || 0;
-      const mixtureName = mixture.name;
-      const mixtureCostPrice = Number(mixture.costPrice || 0) * mixtureQuantity;
-      const mixtureSellingPrice = Number(mixture.sellingPrice || 0) * mixtureQuantity;
-      const mixtureProfitLoss = mixtureSellingPrice - mixtureCostPrice;
+    storeCombos.forEach((saleCombo) => {
+      const combo = saleCombo.combo;
+      if (!combo) return;
+      const comboQuantity = saleCombo.quantity || 0;
+      const comboName = combo.name;
+      const comboCostPrice = Number(combo.costPrice || 0) * comboQuantity;
+      const comboSellingPrice = Number(combo.sellingPrice || 0) * comboQuantity;
+      const comboProfitLoss = comboSellingPrice - comboCostPrice;
 
-      const mixtureItems = mixture.items || [];
-      const mixtureKey = `Mixture: ${mixtureName}(${saleMixture.mixture.items?.length || 0})`;
+      const comboItems = combo.items || [];
+      const comboKey = `Combo: ${comboName}(${saleCombo.combo.items?.length || 0})`;
 
-      salesProducts[mixtureKey] = {
-        count: (salesProducts[mixtureKey]?.count || 0) + mixtureQuantity,
-        costPrice: (salesProducts[mixtureKey]?.costPrice || 0) + mixtureCostPrice,
-        sellingPrice: (salesProducts[mixtureKey]?.sellingPrice || 0) + mixtureSellingPrice,
-        profitLoss: (salesProducts[mixtureKey]?.profitLoss || 0) + mixtureProfitLoss,
+      salesProducts[comboKey] = {
+        count: (salesProducts[comboKey]?.count || 0) + comboQuantity,
+        costPrice: (salesProducts[comboKey]?.costPrice || 0) + comboCostPrice,
+        sellingPrice: (salesProducts[comboKey]?.sellingPrice || 0) + comboSellingPrice,
+        profitLoss: (salesProducts[comboKey]?.profitLoss || 0) + comboProfitLoss,
       };
-      salesProductsTotals.count += mixtureQuantity;
-      salesProductsTotals.costPrice += mixtureCostPrice;
-      salesProductsTotals.sellingPrice += mixtureSellingPrice;
-      salesProductsTotals.profitLoss += mixtureProfitLoss;
+      salesProductsTotals.count += comboQuantity;
+      salesProductsTotals.costPrice += comboCostPrice;
+      salesProductsTotals.sellingPrice += comboSellingPrice;
+      salesProductsTotals.profitLoss += comboProfitLoss;
 
-      const itemsLabel = mixtureItems.length
-        ? `Mixture: (${mixtureItems
-            .map((item) => `${item.product?.name || 'Product'} x${item.number || 0}`)
-            .join(', ')})`
-        : 'Mixture';
+      const itemsLabel = comboItems.length
+        ? `Combo: (${comboItems.map((item) => `${item.product?.name || 'Product'} x${item.number || 0}`).join(', ')})`
+        : 'Combo';
 
       products.push({
-        name: mixtureName,
+        name: comboName,
         label: itemsLabel,
-        quantity: mixtureQuantity,
-        total: mixtureSellingPrice,
+        quantity: comboQuantity,
+        total: comboSellingPrice,
       });
 
-      totalCostPrice += mixtureCostPrice;
-      totalSellingPrice += mixtureSellingPrice;
+      totalCostPrice += comboCostPrice;
+      totalSellingPrice += comboSellingPrice;
     });
     const salePayments = sale.payments || [];
     const saleMethods = new Set(salePayments.map((payment) => payment.paymentMethod));

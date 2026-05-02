@@ -8,25 +8,25 @@ import {
   Model,
   NonAttribute,
 } from 'sequelize';
-import Mixture from './mixture';
+import Combo from './combo';
 import Sale from './sale';
 
-class SaleMixture extends Model<InferAttributes<SaleMixture>, InferCreationAttributes<SaleMixture>> {
+class SaleCombo extends Model<InferAttributes<SaleCombo>, InferCreationAttributes<SaleCombo>> {
   declare readonly id: CreationOptional<string>;
 
   declare saleId: ForeignKey<Sale['id']>;
-  declare mixtureId: ForeignKey<Mixture['id']>;
+  declare comboId: ForeignKey<Combo['id']>;
   declare quantity: number;
 
   declare sale: NonAttribute<Sale>;
-  declare mixture: NonAttribute<Mixture>;
+  declare combo: NonAttribute<Combo>;
 
   declare readonly createdAt: CreationOptional<Date>;
   declare updatedAt: Date | undefined;
   declare deletedAt: Date | undefined;
 }
 
-SaleMixture.init(
+SaleCombo.init(
   {
     id: {
       unique: true,
@@ -47,11 +47,11 @@ SaleMixture.init(
         key: 'id',
       },
     },
-    mixtureId: {
+    comboId: {
       allowNull: false,
       type: DataTypes.UUID,
       references: {
-        model: 'Mixtures',
+        model: 'Combos',
         key: 'id',
       },
     },
@@ -65,9 +65,9 @@ SaleMixture.init(
   },
   {
     sequelize,
-    modelName: 'SaleMixture',
-    tableName: 'SaleMixtures',
+    modelName: 'SaleCombo',
+    tableName: 'SaleCombos',
   }
 );
 
-export default SaleMixture;
+export default SaleCombo;

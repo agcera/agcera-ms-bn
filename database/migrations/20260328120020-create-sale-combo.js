@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('SaleMixtures', {
+    await queryInterface.createTable('SaleCombos', {
       id: {
         unique: true,
         allowNull: false,
@@ -21,11 +21,11 @@ module.exports = {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
-      mixtureId: {
+      comboId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'Mixtures',
+          model: 'Combos',
           key: 'id',
         },
         onDelete: 'RESTRICT',
@@ -46,6 +46,6 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('SaleMixtures');
+    await queryInterface.dropTable('SaleCombos');
   },
 };

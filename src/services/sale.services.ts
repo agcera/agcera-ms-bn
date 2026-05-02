@@ -1,6 +1,6 @@
 import Sale from '@database/models/sale';
 import { PaymentMethodsEnum } from '@database/models/paymentMethods';
-import SaleMixture from '@database/models/salemixture';
+import SaleCombo from '@database/models/salecombo';
 import SalePayment from '@database/models/salepayment';
 import SaleProduct from '@database/models/saleproduct';
 import sequelize from '@database/connection';
@@ -22,7 +22,11 @@ class SaleServices {
       include: [
         {
           association: 'variation',
-          attributes: { exclude: !isAdmin ? ['createdAt', 'updatedAt', 'deletedAt', 'costPrice'] : ['createdAt', 'updatedAt', 'deletedAt'] },
+          attributes: {
+            exclude: !isAdmin
+              ? ['createdAt', 'updatedAt', 'deletedAt', 'costPrice']
+              : ['createdAt', 'updatedAt', 'deletedAt'],
+          },
           include: [
             {
               association: 'product',
@@ -34,14 +38,18 @@ class SaleServices {
     };
   }
 
-  static buildMixtureInclude(isAdmin: boolean): IncludeOptions {
+  static buildComboInclude(isAdmin: boolean): IncludeOptions {
     return {
-      association: 'mixtures',
+      association: 'combos',
       attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
       include: [
         {
-          association: 'mixture',
-          attributes: { exclude: !isAdmin ? ['createdAt', 'updatedAt', 'deletedAt', 'costPrice'] : ['createdAt', 'updatedAt', 'deletedAt'] },
+          association: 'combo',
+          attributes: {
+            exclude: !isAdmin
+              ? ['createdAt', 'updatedAt', 'deletedAt', 'costPrice']
+              : ['createdAt', 'updatedAt', 'deletedAt'],
+          },
           include: [
             {
               association: 'items',
@@ -53,7 +61,11 @@ class SaleServices {
                   include: [
                     {
                       association: 'variations',
-                      attributes: { exclude: !isAdmin ? ['createdAt', 'updatedAt', 'deletedAt', 'costPrice'] : ['createdAt', 'updatedAt', 'deletedAt'] },
+                      attributes: {
+                        exclude: !isAdmin
+                          ? ['createdAt', 'updatedAt', 'deletedAt', 'costPrice']
+                          : ['createdAt', 'updatedAt', 'deletedAt'],
+                      },
                     },
                   ],
                 },
@@ -85,7 +97,7 @@ class SaleServices {
     const include: IncludeOptions[] = [
       this.DEFAULT_STORE_INCLUDE,
       this.buildProductInclude(isAdmin),
-      this.buildMixtureInclude(isAdmin),
+      this.buildComboInclude(isAdmin),
       this.DEFAULT_PAYMENTS_INCLUDE,
       ...(includes || []),
       ...(queryData.clientPhone
@@ -111,7 +123,7 @@ class SaleServices {
     const include: IncludeOptions[] = [
       this.DEFAULT_STORE_INCLUDE,
       this.buildProductInclude(isAdmin),
-      this.buildMixtureInclude(isAdmin),
+      this.buildComboInclude(isAdmin),
       this.DEFAULT_PAYMENTS_INCLUDE,
       ...(includes || []),
     ];
@@ -123,7 +135,7 @@ class SaleServices {
     params: Omit<CreateSaleRequest, 'clientName' | 'phone' | 'isMember'> & { clientId: string },
     isAdmin = false
   ) {
-    const { variations, mixtures, payments, clientId, storeId, doneOn } = params;
+    const { variations, combos, payments, clientId, storeId, doneOn } = params;
     return sequelize.transaction(async (transaction) => {
       const sale = await Sale.create({ clientId, storeId, createdAt: doneOn || new Date() }, { transaction });
 
@@ -135,8 +147,8 @@ class SaleServices {
         ...Object.entries(variations || {}).map(([variationId, quantity]) =>
           SaleProduct.create({ saleId: sale.id, variationId, quantity }, { transaction })
         ),
-        ...Object.entries(mixtures || {}).map(([mixtureId, quantity]) =>
-          SaleMixture.create({ saleId: sale.id, mixtureId, quantity }, { transaction })
+        ...Object.entries(combos || {}).map(([comboId, quantity]) =>
+          SaleCombo.create({ saleId: sale.id, comboId, quantity }, { transaction })
         ),
         ...payments.map(({ paymentMethod, amount }) =>
           SalePayment.create({ saleId: sale.id, paymentMethod, amount }, { transaction })
@@ -145,7 +157,7 @@ class SaleServices {
 
       return await sale.reload({
         transaction,
-        include: [this.buildProductInclude(isAdmin), this.buildMixtureInclude(isAdmin), this.DEFAULT_PAYMENTS_INCLUDE],
+        include: [this.buildProductInclude(isAdmin), this.buildComboInclude(isAdmin), this.DEFAULT_PAYMENTS_INCLUDE],
       });
     });
   }

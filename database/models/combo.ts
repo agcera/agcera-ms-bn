@@ -9,10 +9,10 @@ import {
   ModelValidateOptions,
   NonAttribute,
 } from 'sequelize';
-import MixtureItem from './mixtureitem';
-import SaleMixture from './salemixture';
+import ComboItem from './comboitem';
+import SaleCombo from './salecombo';
 
-class Mixture extends Model<InferAttributes<Mixture>, InferCreationAttributes<Mixture>> {
+class Combo extends Model<InferAttributes<Combo>, InferCreationAttributes<Combo>> {
   declare id: CreationOptional<string>;
   declare name: string;
   declare image: CreationOptional<string>;
@@ -20,12 +20,12 @@ class Mixture extends Model<InferAttributes<Mixture>, InferCreationAttributes<Mi
   declare costPrice: number;
   declare sellingPrice: number;
 
-  declare items?: NonAttribute<MixtureItem[]>;
-  declare sales?: NonAttribute<SaleMixture[]>;
+  declare items?: NonAttribute<ComboItem[]>;
+  declare sales?: NonAttribute<SaleCombo[]>;
 
   declare static associations: {
-    items: Association<MixtureItem, Mixture>;
-    sales: Association<SaleMixture, Mixture>;
+    items: Association<ComboItem, Combo>;
+    sales: Association<SaleCombo, Combo>;
   };
 
   declare readonly createdAt: CreationOptional<Date>;
@@ -33,7 +33,7 @@ class Mixture extends Model<InferAttributes<Mixture>, InferCreationAttributes<Mi
   declare deletedAt: Date | null;
 }
 
-Mixture.init(
+Combo.init(
   {
     id: {
       unique: true,
@@ -55,7 +55,7 @@ Mixture.init(
     description: {
       type: DataTypes.TEXT,
       allowNull: false,
-      defaultValue: 'Mixture description',
+      defaultValue: 'Combo description',
     },
     costPrice: {
       type: DataTypes.DECIMAL,
@@ -85,31 +85,31 @@ Mixture.init(
   },
   {
     sequelize,
-    modelName: 'Mixture',
-    tableName: 'Mixtures',
+    modelName: 'Combo',
+    tableName: 'Combos',
   }
 );
 
-Mixture.hasMany(MixtureItem, {
-  foreignKey: 'mixtureId',
+Combo.hasMany(ComboItem, {
+  foreignKey: 'comboId',
   as: 'items',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
-MixtureItem.belongsTo(Mixture, {
-  foreignKey: 'mixtureId',
-  as: 'mixture',
+ComboItem.belongsTo(Combo, {
+  foreignKey: 'comboId',
+  as: 'combo',
 });
 
-Mixture.hasMany(SaleMixture, {
-  foreignKey: 'mixtureId',
+Combo.hasMany(SaleCombo, {
+  foreignKey: 'comboId',
   as: 'sales',
   onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
 });
-SaleMixture.belongsTo(Mixture, {
-  foreignKey: 'mixtureId',
-  as: 'mixture',
+SaleCombo.belongsTo(Combo, {
+  foreignKey: 'comboId',
+  as: 'combo',
 });
 
-export default Mixture;
+export default Combo;

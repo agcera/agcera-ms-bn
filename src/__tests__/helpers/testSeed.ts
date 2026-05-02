@@ -9,11 +9,11 @@ import StoreProduct from '@database/models/storeproduct';
 import ProductsMovement from '@database/models/productsmovement';
 import Sale from '@database/models/sale';
 import SaleProduct from '@database/models/saleproduct';
-import SaleMixture from '@database/models/salemixture';
+import SaleCombo from '@database/models/salecombo';
 import SalePayment from '@database/models/salepayment';
 import Transaction from '@database/models/transaction';
-import Mixture from '@database/models/mixture';
-import MixtureItem from '@database/models/mixtureitem';
+import Combo from '@database/models/combo';
+import ComboItem from '@database/models/comboitem';
 import Client from '@database/models/client';
 import { UserGendersEnum, UserRolesEnum } from '@src/types/user.types';
 import { ProductTypesEnum } from '@src/types/product.types';
@@ -219,13 +219,13 @@ export const cleanupTestData = async (seed: TestSeed) => {
     if (sequelize) {
       await sequelize.transaction(async (transaction) => {
         await sequelize.query('SET CONSTRAINTS ALL DEFERRED', { transaction });
-        await SaleMixture.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true, transaction });
+        await SaleCombo.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true, transaction });
         await SaleProduct.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true, transaction });
         await SalePayment.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true, transaction });
         await Sale.destroy({ where: { id: { [Op.in]: saleIds } }, force: true, transaction });
       });
     } else {
-      await SaleMixture.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true });
+      await SaleCombo.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true });
       await SaleProduct.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true });
       await SalePayment.destroy({ where: { saleId: { [Op.in]: saleIds } }, force: true });
       await Sale.destroy({ where: { id: { [Op.in]: saleIds } }, force: true });
@@ -244,15 +244,15 @@ export const cleanupTestData = async (seed: TestSeed) => {
     force: true,
   });
 
-  const mixtureItems = await MixtureItem.findAll({
+  const comboItems = await ComboItem.findAll({
     where: { productId: { [Op.in]: productIds } },
-    attributes: ['mixtureId'],
+    attributes: ['comboId'],
   });
-  const mixtureIds = Array.from(new Set(mixtureItems.map((item) => item.mixtureId)));
+  const comboIds = Array.from(new Set(comboItems.map((item) => item.comboId)));
 
-  await MixtureItem.destroy({ where: { productId: { [Op.in]: productIds } }, force: true });
-  if (mixtureIds.length) {
-    await Mixture.destroy({ where: { id: { [Op.in]: mixtureIds } }, force: true });
+  await ComboItem.destroy({ where: { productId: { [Op.in]: productIds } }, force: true });
+  if (comboIds.length) {
+    await Combo.destroy({ where: { id: { [Op.in]: comboIds } }, force: true });
   }
 
   await StoreProduct.destroy({ where: { productId: { [Op.in]: productIds } }, force: true });

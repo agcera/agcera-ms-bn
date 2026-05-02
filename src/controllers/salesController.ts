@@ -1,4 +1,4 @@
-import Mixture from '@database/models/mixture';
+import Combo from '@database/models/combo';
 import { PaymentMethodsEnum } from '@database/models/paymentMethods';
 import Sale from '@database/models/sale';
 import StoreProduct from '@database/models/storeproduct';
@@ -96,12 +96,12 @@ class SalesController extends BaseController {
   ): Promise<Response | undefined> {
     const user = req.user!;
     const isAdmin = user.role === UserRolesEnum.ADMIN;
-    const { variations = {}, mixtures = {}, payments = [], storeId, clientName, phone, isMember, doneOn } = req.body;
+    const { variations = {}, combos = {}, payments = [], storeId, clientName, phone, isMember, doneOn } = req.body;
 
-    if (!Object.keys(variations).length && !Object.keys(mixtures).length) {
+    if (!Object.keys(variations).length && !Object.keys(combos).length) {
       return res.status(400).json({
         status: 400,
-        message: 'Please select at least one product or mixture',
+        message: 'Please select at least one product or combo',
       });
     }
 
@@ -137,7 +137,7 @@ class SalesController extends BaseController {
     }
 
     const variationIds = Object.keys(variations || {});
-    const mixtureIds = Object.keys(mixtures || {});
+    const comboIds = Object.keys(combos || {});
 
     const chosenVariations = await Variation.findAll({ where: { id: variationIds } });
     if (chosenVariations.length !== variationIds.length) {
@@ -147,14 +147,14 @@ class SalesController extends BaseController {
       });
     }
 
-    const chosenMixtures = await Mixture.findAll({
-      where: { id: mixtureIds },
+    const chosenCombos = await Combo.findAll({
+      where: { id: comboIds },
       include: [{ association: 'items' }],
     });
-    if (chosenMixtures.length !== mixtureIds.length) {
+    if (chosenCombos.length !== comboIds.length) {
       return res.status(404).json({
         status: 404,
-        message: 'some mixtures chosen are not available',
+        message: 'some combos chosen are not available',
       });
     }
 
@@ -181,11 +181,11 @@ class SalesController extends BaseController {
       }
     }
 
-    if (chosenMixtures.length) {
-      for (let i = 0; i < chosenMixtures.length; i++) {
-        const mixture = chosenMixtures[i];
-        const mixtureQuantity = mixtures[mixture.id] || 0;
-        const items = mixture.items || [];
+    if (chosenCombos.length) {
+      for (let i = 0; i < chosenCombos.length; i++) {
+        const combo = chosenCombos[i];
+        const comboQuantity = combos[combo.id] || 0;
+        const items = combo.items || [];
 
         for (let j = 0; j < items.length; j++) {
           const item = items[j];
@@ -193,17 +193,17 @@ class SalesController extends BaseController {
           if (!product) {
             return res.status(404).json({
               status: 404,
-              message: `Product with id ${item.productId} related to mixture ${mixture.id} not found in the store with id ${storeId}`,
+              message: `Product with id ${item.productId} related to combo ${combo.id} not found in the store with id ${storeId}`,
             });
           }
 
-          const removed = mixtureQuantity * item.number;
+          const removed = comboQuantity * item.number;
           productRemoved[product.productId] = (productRemoved[product.productId] || 0) + removed;
 
           if (product.quantity < productRemoved[product.productId]) {
             return res.status(400).json({
               status: 400,
-              message: `Requested quantity of ${product.product?.name || item.productId} related to mixture ${mixture.name} is not available`,
+              message: `Requested quantity of ${product.product?.name || item.productId} related to combo ${combo.name} is not available`,
             });
           }
         }
@@ -215,9 +215,9 @@ class SalesController extends BaseController {
         const quantity = Number(variations[variation.id] || 0);
         return acc + quantity * parseFloat(`${variation.sellingPrice}`);
       }, 0) +
-      chosenMixtures.reduce((acc, mixture) => {
-        const quantity = Number(mixtures[mixture.id] || 0);
-        return acc + quantity * parseFloat(`${mixture.sellingPrice || 0}`);
+      chosenCombos.reduce((acc, combo) => {
+        const quantity = Number(combos[combo.id] || 0);
+        return acc + quantity * parseFloat(`${combo.sellingPrice || 0}`);
       }, 0);
 
     if (!payments.length) {
@@ -238,7 +238,7 @@ class SalesController extends BaseController {
     const sale = await SaleServices.createSale(
       {
         variations,
-        mixtures,
+        combos,
         payments,
         clientId: client.id,
         storeId,
@@ -287,17 +287,17 @@ class SalesController extends BaseController {
       productsNumbers[product] = (productsNumbers[product] || 0) + variation.quantity! * variation.variation.number;
     });
 
-    const saleMixtures = sale.mixtures || [];
-    if (saleMixtures.length) {
-      const mixtureIds = saleMixtures.map((mixture) => mixture.mixtureId);
-      const mixtures = await Mixture.findAll({ where: { id: mixtureIds }, include: [{ association: 'items' }] });
-      const mixturesById = new Map(mixtures.map((mixture) => [mixture.id, mixture]));
+    const saleCombos = sale.combos || [];
+    if (saleCombos.length) {
+      const comboIds = saleCombos.map((combo) => combo.comboId);
+      const combos = await Combo.findAll({ where: { id: comboIds }, include: [{ association: 'items' }] });
+      const combosById = new Map(combos.map((combo) => [combo.id, combo]));
 
-      saleMixtures.forEach((saleMixture) => {
-        const mixture = mixturesById.get(saleMixture.mixtureId);
-        if (!mixture?.items?.length) return;
-        mixture.items.forEach((item) => {
-          productsNumbers[item.productId] = (productsNumbers[item.productId] || 0) + saleMixture.quantity * item.number;
+      saleCombos.forEach((saleCombo) => {
+        const combo = combosById.get(saleCombo.comboId);
+        if (!combo?.items?.length) return;
+        combo.items.forEach((item) => {
+          productsNumbers[item.productId] = (productsNumbers[item.productId] || 0) + saleCombo.quantity * item.number;
         });
       });
     }

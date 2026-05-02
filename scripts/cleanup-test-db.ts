@@ -1,17 +1,17 @@
 import sequelize from '@database/connection';
 import ProductsMovement from '@database/models/productsmovement';
 import Sale from '@database/models/sale';
-import SaleMixture from '@database/models/salemixture';
+import SaleCombo from '@database/models/salecombo';
 import SaleProduct from '@database/models/saleproduct';
 import Transaction from '@database/models/transaction';
-import Mixture from '@database/models/mixture';
-import MixtureItem from '@database/models/mixtureitem';
+import Combo from '@database/models/combo';
+import ComboItem from '@database/models/comboitem';
 
 const cleanup = async () => {
   try {
-    await MixtureItem.destroy({ where: {}, force: true, truncate: true, cascade: true });
-    await Mixture.destroy({ where: {}, force: true, truncate: true, cascade: true });
-    await SaleMixture.destroy({ where: {}, force: true, truncate: true, cascade: true });
+    await ComboItem.destroy({ where: {}, force: true, truncate: true, cascade: true });
+    await Combo.destroy({ where: {}, force: true, truncate: true, cascade: true });
+    await SaleCombo.destroy({ where: {}, force: true, truncate: true, cascade: true });
     await SaleProduct.destroy({ where: {}, force: true, truncate: true, cascade: true });
     await Sale.destroy({ where: {}, force: true, truncate: true, cascade: true });
     await Transaction.destroy({ where: {}, force: true, truncate: true, cascade: true });

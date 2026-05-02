@@ -1,5 +1,5 @@
 import Product from '@database/models/product';
-import MixtureServices from '@src/services/mixture.services';
+import ComboServices from '@src/services/combo.services';
 import { ExtendedRequest } from '@src/types/common.types';
 import { handleDeleteUpload, handleUpload } from '@src/utils/cloudinary';
 import { UploadApiErrorResponse } from 'cloudinary';
@@ -9,28 +9,28 @@ import { BaseController } from '.';
 import { recordDeleted } from '@src/services/history.services';
 import { UserRolesEnum } from '@src/types/user.types';
 
-export default class MixturesController extends BaseController {
-  async getAllMixtures(req: ExtendedRequest, res: Response): Promise<Response> {
+export default class CombosController extends BaseController {
+  async getAllCombos(req: ExtendedRequest, res: Response): Promise<Response> {
     const isAdmin = req.user?.role === UserRolesEnum.ADMIN;
-    const { mixtures, total } = await MixtureServices.getAllMixtures(req.query, undefined, undefined, isAdmin);
-    return res.status(200).json({ status: 'success', data: { mixtures, total } });
+    const { combos, total } = await ComboServices.getAllCombos(req.query, undefined, undefined, isAdmin);
+    return res.status(200).json({ status: 'success', data: { combos, total } });
   }
 
-  async getOneMixture(req: ExtendedRequest, res: Response): Promise<Response> {
+  async getOneCombo(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
     const isAdmin = req.user?.role === UserRolesEnum.ADMIN;
-    const mixture = await MixtureServices.getMixtureByPk(id, undefined, isAdmin);
-    if (!mixture) {
-      return res.status(404).json({ status: 'fail', message: 'Mixture not found' });
+    const combo = await ComboServices.getComboByPk(id, undefined, isAdmin);
+    if (!combo) {
+      return res.status(404).json({ status: 'fail', message: 'Combo not found' });
     }
-    return res.status(200).json({ status: 'success', data: mixture });
+    return res.status(200).json({ status: 'success', data: combo });
   }
 
-  async createMixture(req: ExtendedRequest, res: Response): Promise<Response> {
+  async createCombo(req: ExtendedRequest, res: Response): Promise<Response> {
     const { name, items, costPrice, sellingPrice, description } = req.body;
-    const existing = await MixtureServices.getOneMixture({ name }, undefined, true);
+    const existing = await ComboServices.getOneCombo({ name }, undefined, true);
     if (existing) {
-      return res.status(400).json({ status: 'fail', message: 'Mixture with the provided name already exists' });
+      return res.status(400).json({ status: 'fail', message: 'Combo with the provided name already exists' });
     }
 
     const productIds = (items || []).map((item: any) => item.productId);
@@ -44,41 +44,41 @@ export default class MixturesController extends BaseController {
     let url: string | null = null;
     if (req.file) {
       try {
-        url = await handleUpload(req.file, 'mixtures');
+        url = await handleUpload(req.file, 'combos');
       } catch (error) {
         return res.status(400).json({
           status: 'fail',
-          message: (error as UploadApiErrorResponse).message || 'Failed while uploading the mixture image',
+          message: (error as UploadApiErrorResponse).message || 'Failed while uploading the combo image',
         });
       }
     }
 
-    let mixture;
+    let combo;
     try {
-      mixture = await MixtureServices.createMixture({ name, items, costPrice, sellingPrice, description, image: url });
+      combo = await ComboServices.createCombo({ name, items, costPrice, sellingPrice, description, image: url });
     } catch (error) {
       return res.status(400).json({ status: 'fail', message: (error as Error).message });
     }
 
-    return res.status(201).json({ status: 'success', data: mixture });
+    return res.status(201).json({ status: 'success', data: combo });
   }
 
-  async updateMixture(req: ExtendedRequest, res: Response): Promise<Response> {
+  async updateCombo(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
     const { name, items, costPrice, sellingPrice, description } = req.body;
-    const existingMixture = await MixtureServices.getMixtureByPk(
+    const existingCombo = await ComboServices.getComboByPk(
       id,
       [{ association: 'sales', attributes: ['id'] }] as IncludeOptions[],
       true
     );
-    if (!existingMixture) {
-      return res.status(404).json({ status: 'fail', message: 'Mixture not found' });
+    if (!existingCombo) {
+      return res.status(404).json({ status: 'fail', message: 'Combo not found' });
     }
 
     if (name) {
-      const duplicate = await MixtureServices.getOneMixture({ name, id: { [Op.not]: id } }, undefined, true);
+      const duplicate = await ComboServices.getOneCombo({ name, id: { [Op.not]: id } }, undefined, true);
       if (duplicate) {
-        return res.status(400).json({ status: 'fail', message: 'Mixture with the provided name already exists' });
+        return res.status(400).json({ status: 'fail', message: 'Combo with the provided name already exists' });
       }
     }
 
@@ -93,18 +93,18 @@ export default class MixturesController extends BaseController {
     let url: string | null = null;
     if (req.file) {
       try {
-        url = await handleUpload(req.file, 'mixtures');
+        url = await handleUpload(req.file, 'combos');
       } catch (error) {
         return res.status(400).json({
           status: 'fail',
-          message: (error as UploadApiErrorResponse).message || 'Failed while uploading the mixture image',
+          message: (error as UploadApiErrorResponse).message || 'Failed while uploading the combo image',
         });
       }
     }
 
     let updated;
     try {
-      updated = await MixtureServices.updateMixture(id, {
+      updated = await ComboServices.updateCombo(id, {
         name,
         costPrice,
         sellingPrice,
@@ -117,7 +117,7 @@ export default class MixturesController extends BaseController {
     }
 
     if (url) {
-      handleDeleteUpload(existingMixture.image).catch((error) => {
+      handleDeleteUpload(existingCombo.image).catch((error) => {
         console.error('Failed to delete the old image', error);
       });
     }
@@ -125,37 +125,37 @@ export default class MixturesController extends BaseController {
     return res.status(200).json({ status: 'success', data: updated });
   }
 
-  async deleteMixture(req: ExtendedRequest, res: Response): Promise<Response> {
+  async deleteCombo(req: ExtendedRequest, res: Response): Promise<Response> {
     const { id } = req.params;
     const user = req.user!;
-    const existingMixture = await MixtureServices.getMixtureByPk(
+    const existingCombo = await ComboServices.getComboByPk(
       id,
       [{ association: 'sales', attributes: ['id'] }] as IncludeOptions[],
       true
     );
-    if (!existingMixture) {
-      return res.status(404).json({ status: 'fail', message: 'Mixture not found' });
+    if (!existingCombo) {
+      return res.status(404).json({ status: 'fail', message: 'Combo not found' });
     }
-    if (existingMixture.sales && existingMixture.sales.length) {
+    if (existingCombo.sales && existingCombo.sales.length) {
       return res.status(400).json({
         status: 'fail',
-        message: 'Mixture can no longer be deleted because it has already been used in sales.',
+        message: 'Combo can no longer be deleted because it has already been used in sales.',
       });
     }
 
-    let mixture;
+    let combo;
     try {
-      mixture = await MixtureServices.deleteMixture(id);
+      combo = await ComboServices.deleteCombo(id);
     } catch (error) {
       return res.status(400).json({ status: 'fail', message: (error as Error).message });
     }
 
-    await recordDeleted({ name: user.name, phone: user.phone }, 'mixture', mixture);
+    await recordDeleted({ name: user.name, phone: user.phone }, 'combo', combo);
 
-    handleDeleteUpload(mixture.image).catch((error) => {
+    handleDeleteUpload(combo.image).catch((error) => {
       console.error('Failed to delete the old image', error);
     });
 
-    return res.status(201).json({ status: 'success', data: 'Mixture deleted successfully', mixture });
+    return res.status(201).json({ status: 'success', data: 'Combo deleted successfully', combo });
   }
 }
